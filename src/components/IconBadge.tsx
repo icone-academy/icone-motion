@@ -1,7 +1,8 @@
 import React from 'react';
-import {spring, useCurrentFrame, useVideoConfig} from 'remotion';
+import {spring} from 'remotion';
 import type {LucideIcon} from 'lucide-react';
 import {colors, radius} from '../theme';
+import {AUTHOR_FPS, useAuthoredFrame} from '../timeline';
 
 /**
  * Ícone Lucide (outline) em container arredondado soft,
@@ -26,13 +27,12 @@ export const IconBadge: React.FC<{
   borderRadius = radius.md,
   style,
 }) => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const frame = useAuthoredFrame();
 
   const pop = spring({
     frame: frame - delay,
-    fps,
-    config: {damping: 12, stiffness: 180, mass: 0.6},
+    fps: AUTHOR_FPS,
+    config: {damping: 16, stiffness: 150, mass: 0.7},
   });
 
   return (
@@ -45,11 +45,12 @@ export const IconBadge: React.FC<{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        transform: `scale(${pop})`,
+        transform: `scale(${0.7 + pop * 0.3})`,
+        opacity: pop,
         ...style,
       }}
     >
-      <Icon size={iconSize} color={color} strokeWidth={2} />
+      <Icon size={iconSize} color={color} strokeWidth={1.8} />
     </div>
   );
 };

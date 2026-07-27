@@ -3,9 +3,9 @@ import {
   AbsoluteFill,
   interpolate,
   spring,
-  useCurrentFrame,
   useVideoConfig,
 } from 'remotion';
+import {AUTHOR_FPS, T, useAuthoredFrame} from '../timeline';
 import {ArrowRight, CheckCircle2, TrendingUp, Wand2} from 'lucide-react';
 import {SceneBackground} from '../components/SceneBackground';
 import {Eyebrow} from '../components/Eyebrow';
@@ -37,8 +37,8 @@ const PARAMS = [
 ];
 
 const ProcessingPanel: React.FC<{delay: number}> = ({delay}) => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const fps = AUTHOR_FPS;
   const local = frame - delay;
 
   const enter = spring({
@@ -202,8 +202,8 @@ const ProcessingPanel: React.FC<{delay: number}> = ({delay}) => {
 };
 
 const BeforeAfter: React.FC<{delay: number}> = ({delay}) => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const fps = AUTHOR_FPS;
   const local = frame - delay;
 
   const enter = spring({frame: local, fps, config: {damping: 200, stiffness: 90}});
@@ -355,7 +355,7 @@ const BeforeAfter: React.FC<{delay: number}> = ({delay}) => {
 };
 
 export const Scene06: React.FC = () => {
-  const frame = useCurrentFrame();
+  const frame = useAuthoredFrame();
 
   const introOpacity = interpolate(frame, [PROCESS_IN - 20, PROCESS_IN], [1, 0], {
     extrapolateLeft: 'clamp',

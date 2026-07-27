@@ -5,19 +5,19 @@ import {
   Sequence,
   spring,
   useCurrentFrame,
-  useVideoConfig,
 } from 'remotion';
+import {AUTHOR_FPS, DUR, VO_CUTS, sec, useAuthoredFrame} from '../timeline';
 import {
   BadgeDollarSign,
   Building2,
   Calculator,
   ClipboardList,
-  FileText,
   Globe,
   Package,
   Printer,
   Save,
   Scale,
+  ShieldCheck,
   Snowflake,
   Sparkles,
   Tag,
@@ -26,29 +26,45 @@ import {SceneBackground} from '../components/SceneBackground';
 import {Eyebrow} from '../components/Eyebrow';
 import {Pill} from '../components/Pill';
 import {GaugeArc, GaugeZone} from '../components/GaugeArc';
-import {colors, radius} from '../theme';
+import {colors, radius, shadows} from '../theme';
 import {fontBody, fontDisplay} from '../fonts';
 
 /**
- * Cena 5 — Workbench de receita em beats fullscreen:
- * 1) Composição
- * 2–5) Tour de abas: Gauges → Resumo → Explicação → Valores Nutricionais
+ * Cena 5 — Workbench de receita em beats fullscreen, sync VO:
+ * 65.88 config → 87.88 gauges → 104.88 interpretação → 110.48 explicação
+ * → 119.08 nutrição (aba) → 128.88 destaque etiqueta/ficha → 139.28
  */
 
-export const BEAT = {
-  composition: 420, // ~14s — configurar receita / ingredientes
-  gauges: 480, // ~16s — painel de parâmetros
-  resumo: 150, // ~5s
-  explanation: 330, // ~11s — texto simples
-  nutrition: 360, // ~12s — tabela nutricional
+const S5_START = VO_CUTS.scene05[0];
+const S5_MARK = {
+  compositionEnd: 87.88,
+  gaugesEnd: 104.88, // “interpretação / faixa ideal”
+  resumoEnd: 110.48, // “aba explicação”
+  explanationEnd: 119.08, // “Valores Nutricionais”
+  /** “E direto dessa mesma tela…” — destaque nos CTAs */
+  ctaHighlight: 128.88,
+  nutritionEnd: VO_CUTS.scene05[1],
 } as const;
+
+/** Durações em frames reais (60fps), alinhadas ao VO. */
+export const BEAT = {
+  composition: sec(S5_MARK.compositionEnd) - sec(S5_START),
+  gauges: sec(S5_MARK.gaugesEnd) - sec(S5_MARK.compositionEnd),
+  resumo: sec(S5_MARK.resumoEnd) - sec(S5_MARK.gaugesEnd),
+  explanation: sec(S5_MARK.explanationEnd) - sec(S5_MARK.resumoEnd),
+  nutrition: sec(S5_MARK.nutritionEnd) - sec(S5_MARK.explanationEnd),
+} as const;
+
+/** Frame real (60fps) dentro do beat Nutrição em que os CTAs ganham destaque. */
+const CTA_HIGHLIGHT_AT =
+  sec(S5_MARK.ctaHighlight) - sec(S5_MARK.explanationEnd);
 
 export const SCENE05_TOTAL =
   BEAT.composition +
   BEAT.gauges +
   BEAT.resumo +
   BEAT.explanation +
-  BEAT.nutrition; // 1740
+  BEAT.nutrition;
 
 const ZONES: GaugeZone[] = [
   {from: 0, to: 0.2, color: colors.gaugeRed},
@@ -80,10 +96,10 @@ const GAUGES: {
   {label: 'PAC', value: '28', fraction: 0.55, status: 'perfect'},
   {label: 'POD', value: '18', fraction: 0.5, status: 'perfect'},
   {label: 'Overrun final', value: '28%', fraction: 0.48, status: 'perfect'},
-  {label: 'Cristalização', value: 'Boa', fraction: 0.46, status: 'perfect'},
-  {label: 'Cremosidade', value: 'Alta', fraction: 0.5, status: 'perfect'},
+  {label: 'Cristalização', value: '88%', fraction: 0.46, status: 'perfect'},
+  {label: 'Cremosidade', value: '74%', fraction: 0.5, status: 'perfect'},
   {label: 'Lactose', value: '5%', fraction: 0.4, status: 'perfect'},
-  {label: 'Índice glicêmico', value: '42', fraction: 0.38, status: 'technical'},
+  {label: 'Índice glicêmico', value: '42%', fraction: 0.38, status: 'technical'},
 ];
 
 const COMPOSITION_ROWS = [
@@ -144,23 +160,58 @@ const FOOTER_CARDS = [
   {icon: Package, label: 'Alvo de produção', value: '5.000 g'},
 ];
 
-const EXPLANATION_PARAS = [
-  'Esta receita está bem equilibrada para um gelato de pistache.',
-  'A água e os açúcares estão na faixa ideal — o gelato congela de forma limpa e cremosa.',
-  'O PAC indica ponto de congelamento adequado para vitrine; o POD traz doçura equilibrada sem mascarar o pistache.',
-  'Overrun e cremosidade sugerem boa estrutura na mantecação e estabilidade na exposição.',
+const EXPLANATION_BLOCKS: {
+  text: string;
+  /** palavra/trecho em destaque */
+  emphasis: string;
+  /** início relativo (frames 30fps) no beat Explicação */
+  at: number;
+}[] = [
+  {
+    text: 'Esta receita está bem equilibrada para um gelato de pistache.',
+    emphasis: 'equilibrada',
+    at: 18,
+  },
+  {
+    text: 'A água e os açúcares estão na faixa ideal — o gelato congela de forma limpa e cremosa.',
+    emphasis: 'faixa ideal',
+    at: 55,
+  },
+  {
+    text: 'O PAC indica ponto de congelamento adequado para vitrine; o POD traz doçura equilibrada sem mascarar o pistache.',
+    emphasis: 'PAC',
+    at: 100,
+  },
+  {
+    text: 'Overrun e cremosidade sugerem boa estrutura na mantecação e estabilidade na exposição.',
+    emphasis: 'cremosidade',
+    at: 155,
+  },
 ];
 
-const NUTRITION_ROWS = [
-  {name: 'Valor energético', value: '186 kcal'},
-  {name: 'Carboidratos', value: '22 g'},
-  {name: 'Açúcares totais', value: '20 g'},
-  {name: 'Gorduras totais', value: '8,5 g'},
-  {name: 'Gorduras saturadas', value: '4,2 g'},
-  {name: 'Proteínas', value: '4,1 g'},
-  {name: 'Fibras', value: '0,8 g'},
-  {name: 'Sódio', value: '52 mg'},
+/** Tabela ANVISA (porção + 100g + %VD) — beat Nutrição */
+type NutrientRow = {
+  name: string;
+  portion: string;
+  per100: string;
+  vd: string;
+  indent?: boolean;
+};
+
+const ANVISA_ROWS: NutrientRow[] = [
+  {name: 'Valor energético (kcal)', portion: '129', per100: '215', vd: '6%'},
+  {name: 'Carboidratos (g)', portion: '14', per100: '24', vd: '5%'},
+  {name: 'Açúcares totais (g)', portion: '13', per100: '21', vd: '—', indent: true},
+  {name: 'Açúcares adicionados (g)', portion: '11', per100: '18', vd: '22%', indent: true},
+  {name: 'Proteínas (g)', portion: '2,3', per100: '3,8', vd: '5%'},
+  {name: 'Gorduras totais (g)', portion: '6,6', per100: '11', vd: '10%'},
+  {name: 'Gorduras saturadas (g)', portion: '3,4', per100: '5,6', vd: '17%', indent: true},
+  {name: 'Gorduras trans (g)', portion: '0', per100: '0', vd: '0%', indent: true},
+  {name: 'Fibra alimentar (g)', portion: '0,5', per100: '0,8', vd: '2%'},
+  {name: 'Sódio (mg)', portion: '27', per100: '45', vd: '1%'},
 ];
+
+const cellBorder = '1.5px solid #1a1a1a';
 
 const RESUMO_SECTIONS: {
   title: string;
@@ -198,9 +249,9 @@ const RESUMO_SECTIONS: {
     title: 'Comportamento por Temperatura',
     rows: [
       {label: 'Temp. ideal da vitrine', value: '−12,5 °C', status: 'perfect'},
-      {label: 'Mantecação (−6 °C)', value: 'Equilibrado', status: 'perfect'},
-      {label: 'Vitrine (−10 °C)', value: 'Equilibrado', status: 'perfect'},
-      {label: 'Freezer (−18 °C)', value: 'Estável', status: 'perfect'},
+      {label: 'Mantecação (−6 °C)', value: '82', status: 'perfect'},
+      {label: 'Vitrine (−10 °C)', value: '78', status: 'perfect'},
+      {label: 'Freezer (−18 °C)', value: '85', status: 'perfect'},
     ],
   },
   {
@@ -330,6 +381,7 @@ const TabsBar: React.FC<{
   tabIndex: number;
   duration: number;
 }> = ({active, tabIndex, duration}) => {
+  // duration e frame em frames reais (60fps) — sync com Sequence/VO
   const frame = useCurrentFrame();
   const local = Math.min(1, Math.max(0, frame / Math.max(1, duration - 1)));
   const progressPct = ((tabIndex + local) / ANALYSIS_TABS.length) * 100;
@@ -390,16 +442,137 @@ const TabsBar: React.FC<{
   );
 };
 
-/* ─── Beat 1: Composição ─────────────────────────────────────────── */
+/* ─── Beat 1: Composição (VO: configurar → certificados → cadastrados → custo → alvo → cálculo) ─── */
+
+/** Fases em frames de autoria (30fps), sync com o VO deste beat (~22s). */
+const COMP = {
+  certified: 120, // ingredientes certificados ICone
+  custom: 210, // ingredientes do workspace
+  supplier: 290, // fornecedores + custo
+  target: 420, // alvo de produção
+  calc: 480, // cálculo automático
+} as const;
+
+const CompCallout: React.FC<{
+  label: string;
+  sub: string;
+  icon: React.ComponentType<{size?: number; color?: string; strokeWidth?: number}>;
+  tint: string;
+  soft: string;
+  delay: number;
+  x: number;
+  y: number;
+}> = ({label, sub, icon: Icon, tint, soft, delay, x, y}) => {
+  const frame = useAuthoredFrame();
+  const fps = AUTHOR_FPS;
+  const pop = spring({
+    frame: frame - delay,
+    fps,
+    config: {damping: 12, stiffness: 150, mass: 0.65},
+  });
+  const hold = interpolate(frame, [delay, delay + 8, delay + 70, delay + 90], [0, 1, 1, 0], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+  });
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: x,
+        top: y,
+        opacity: hold * pop,
+        transform: `translate(-50%, -50%) scale(${0.85 + pop * 0.15})`,
+        zIndex: 30,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 14,
+        backgroundColor: colors.surface,
+        border: `2px solid ${tint}`,
+        borderRadius: radius.lg,
+        boxShadow: shadows.shell,
+        padding: '14px 20px',
+        minWidth: 260,
+        pointerEvents: 'none',
+      }}
+    >
+      <div
+        style={{
+          width: 48,
+          height: 48,
+          borderRadius: radius.md,
+          backgroundColor: soft,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+        }}
+      >
+        <Icon size={26} color={tint} strokeWidth={2} />
+      </div>
+      <div style={{display: 'flex', flexDirection: 'column', gap: 2}}>
+        <span
+          style={{
+            fontFamily: fontBody,
+            fontWeight: 700,
+            fontSize: 18,
+            color: tint,
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+          }}
+        >
+          {label}
+        </span>
+        <span
+          style={{
+            fontFamily: fontBody,
+            fontWeight: 600,
+            fontSize: 22,
+            color: colors.textPrimary,
+          }}
+        >
+          {sub}
+        </span>
+      </div>
+    </div>
+  );
+};
 
 const BeatComposition: React.FC = () => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const fps = AUTHOR_FPS;
 
   const panelIn = spring({
-    frame: frame - 4,
+    frame: frame - 2,
     fps,
-    config: {damping: 200, stiffness: 95},
+    config: {damping: 18, stiffness: 100, mass: 0.85},
+  });
+
+  const phaseCertified = interpolate(frame, [COMP.certified, COMP.certified + 12, COMP.custom - 8, COMP.custom], [0, 1, 1, 0.25], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+  });
+  const phaseCustom = interpolate(frame, [COMP.custom, COMP.custom + 12, COMP.supplier - 8, COMP.supplier], [0, 1, 1, 0.25], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+  });
+  const phaseSupplier = interpolate(frame, [COMP.supplier, COMP.supplier + 12, COMP.target - 8, COMP.target], [0, 1, 1, 0.35], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+  });
+  const phaseTarget = interpolate(frame, [COMP.target, COMP.target + 12, COMP.calc - 6, COMP.calc], [0, 1, 1, 0.45], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+  });
+  const phaseCalc = interpolate(frame, [COMP.calc, COMP.calc + 16], [0, 1], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+  });
+
+  const calcPulse = 0.5 + 0.5 * Math.sin((frame - COMP.calc) * 0.35);
+  const scanY = interpolate(frame, [COMP.calc, COMP.calc + 90], [0, 1], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
   });
 
   return (
@@ -407,7 +580,7 @@ const BeatComposition: React.FC = () => {
       <div
         style={{
           opacity: panelIn,
-          transform: `translateY(${(1 - panelIn) * 18}px)`,
+          transform: `translateY(${(1 - panelIn) * 22}px) scale(${0.97 + panelIn * 0.03})`,
           position: 'absolute',
           inset: 0,
           backgroundColor: colors.surface,
@@ -427,6 +600,7 @@ const BeatComposition: React.FC = () => {
             gap: 14,
             minHeight: 0,
             justifyContent: 'center',
+            position: 'relative',
           }}
         >
           <div
@@ -445,21 +619,51 @@ const BeatComposition: React.FC = () => {
             }}
           >
             <span>Ingrediente</span>
-            <span style={{textAlign: 'center'}}>Fornecedor</span>
-            <span style={{textAlign: 'center'}}>Preço/kg</span>
-            <span style={{textAlign: 'center'}}>Preço na receita</span>
+            <span
+              style={{
+                textAlign: 'center',
+                color: phaseSupplier > 0.5 ? colors.primary : colors.textMuted,
+                transform: `scale(${1 + phaseSupplier * 0.06})`,
+              }}
+            >
+              Fornecedor
+            </span>
+            <span
+              style={{
+                textAlign: 'center',
+                color: phaseSupplier > 0.5 ? colors.primary : colors.textMuted,
+              }}
+            >
+              Preço/kg
+            </span>
+            <span
+              style={{
+                textAlign: 'center',
+                color: phaseSupplier > 0.5 ? colors.primary : colors.textMuted,
+              }}
+            >
+              Preço na receita
+            </span>
             <span style={{textAlign: 'center'}}>Peso</span>
           </div>
 
-          <div style={{display: 'flex', flexDirection: 'column', gap: 10}}>
+          <div style={{display: 'flex', flexDirection: 'column', gap: 10, position: 'relative'}}>
             {COMPOSITION_ROWS.map((row, i) => {
               const enter = spring({
-                frame: frame - 14 - i * 5,
+                frame: frame - 10 - i * 7,
                 fps,
-                config: {damping: 200, stiffness: 130},
+                config: {damping: 14, stiffness: 130, mass: 0.7},
               });
               const isGlobal = row.scope === 'global';
               const ScopeIcon = isGlobal ? Globe : Building2;
+              const scopeGlow = isGlobal ? phaseCertified : phaseCustom;
+              const dimOther =
+                (phaseCertified > 0.4 && !isGlobal) || (phaseCustom > 0.4 && isGlobal)
+                  ? 0.35
+                  : 0;
+              const supplierGlow = phaseSupplier;
+              const rowScale = 1 + scopeGlow * 0.025 + (i === 3 && phaseCustom > 0.5 ? 0.02 : 0);
+
               return (
                 <div
                   key={row.name}
@@ -470,9 +674,31 @@ const BeatComposition: React.FC = () => {
                     alignItems: 'center',
                     padding: '20px 16px',
                     borderRadius: radius.md,
-                    backgroundColor: i % 2 === 0 ? colors.surfaceMuted : colors.surface,
-                    opacity: enter,
-                    transform: `translateX(${(1 - enter) * -18}px)`,
+                    backgroundColor:
+                      scopeGlow > 0.45
+                        ? isGlobal
+                          ? 'rgba(220, 252, 231, 0.85)'
+                          : 'rgba(239, 232, 223, 0.95)'
+                        : i % 2 === 0
+                          ? colors.surfaceMuted
+                          : colors.surface,
+                    border: `1.5px solid ${
+                      scopeGlow > 0.45
+                        ? isGlobal
+                          ? colors.success
+                          : colors.primary
+                        : 'transparent'
+                    }`,
+                    boxShadow:
+                      scopeGlow > 0.45
+                        ? `0 0 ${16 + scopeGlow * 20}px ${
+                            isGlobal
+                              ? 'rgba(22,163,74,0.28)'
+                              : 'rgba(122,106,90,0.28)'
+                          }`
+                        : 'none',
+                    opacity: enter * (1 - dimOther),
+                    transform: `translateX(${(1 - enter) * -28}px) scale(${rowScale})`,
                     fontFamily: fontBody,
                     fontSize: 26,
                   }}
@@ -486,17 +712,55 @@ const BeatComposition: React.FC = () => {
                       color: colors.textPrimary,
                     }}
                   >
-                    <ScopeIcon
-                      size={28}
-                      color={isGlobal ? colors.success : colors.primary}
-                      strokeWidth={2.25}
-                    />
+                    <span
+                      style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: radius.md,
+                        backgroundColor: isGlobal ? colors.successSoft : colors.primarySoft,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transform: `scale(${1 + scopeGlow * 0.15})`,
+                      }}
+                    >
+                      <ScopeIcon
+                        size={26}
+                        color={isGlobal ? colors.success : colors.primary}
+                        strokeWidth={2.25}
+                      />
+                    </span>
                     {row.name}
+                    {scopeGlow > 0.55 ? (
+                      <Pill
+                        bg={isGlobal ? colors.successSoft : colors.primarySoft}
+                        color={isGlobal ? colors.success : colors.primary}
+                        fontSize={14}
+                        style={{padding: '4px 10px'}}
+                      >
+                        {isGlobal ? 'Certificado ICone' : 'Seu cadastro'}
+                      </Pill>
+                    ) : null}
                   </span>
-                  <span style={{textAlign: 'center', color: colors.textSecondary, fontSize: 24}}>
+                  <span
+                    style={{
+                      textAlign: 'center',
+                      color: supplierGlow > 0.5 ? colors.primary : colors.textSecondary,
+                      fontSize: 24,
+                      fontWeight: supplierGlow > 0.5 ? 700 : 500,
+                      transform: `scale(${1 + supplierGlow * 0.05})`,
+                    }}
+                  >
                     {row.supplier}
                   </span>
-                  <span style={{textAlign: 'center', color: colors.textMuted, fontSize: 24}}>
+                  <span
+                    style={{
+                      textAlign: 'center',
+                      color: supplierGlow > 0.5 ? colors.textPrimary : colors.textMuted,
+                      fontSize: 24,
+                      fontWeight: supplierGlow > 0.5 ? 700 : 500,
+                    }}
+                  >
                     {row.pricePerKg}
                   </span>
                   <span
@@ -505,6 +769,7 @@ const BeatComposition: React.FC = () => {
                       fontWeight: 700,
                       color: colors.textPrimary,
                       fontSize: 26,
+                      transform: `scale(${1 + supplierGlow * 0.06})`,
                     }}
                   >
                     {row.priceInRecipe}
@@ -521,9 +786,24 @@ const BeatComposition: React.FC = () => {
                 </div>
               );
             })}
+
+            {phaseCalc > 0.05 ? (
+              <div
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  right: 0,
+                  top: `${scanY * 100}%`,
+                  height: 3,
+                  background: `linear-gradient(90deg, transparent, ${colors.primary}, transparent)`,
+                  opacity: 0.55 + calcPulse * 0.35,
+                  pointerEvents: 'none',
+                  boxShadow: `0 0 18px ${colors.primary}`,
+                }}
+              />
+            ) : null}
           </div>
 
-          {/* Cards logo abaixo da tabela de ingredientes */}
           <div
             style={{
               display: 'grid',
@@ -535,30 +815,67 @@ const BeatComposition: React.FC = () => {
           >
             {FOOTER_CARDS.map((card, i) => {
               const pop = spring({
-                frame: frame - 40 - i * 4,
+                frame: frame - 48 - i * 5,
                 fps,
-                config: {damping: 14, stiffness: 140, mass: 0.65},
+                config: {damping: 12, stiffness: 140, mass: 0.65},
               });
               const Icon = card.icon;
+              const isTarget = i === 3;
+              const isCost = i === 1 || i === 2;
+              const emphasis =
+                (isTarget ? phaseTarget : 0) + (isCost ? phaseSupplier * 0.7 : 0) + phaseCalc * 0.35;
+              const counted =
+                i === 1 || i === 2
+                  ? interpolate(
+                      frame,
+                      [COMP.supplier + 10, COMP.supplier + 45],
+                      [0, 23.06],
+                      {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'},
+                    )
+                  : null;
+              const displayValue =
+                counted !== null
+                  ? `R$ ${counted.toFixed(2).replace('.', ',')}${i === 2 ? '/Kg' : ''}`
+                  : card.value;
+
               return (
                 <div
                   key={card.label}
                   style={{
                     opacity: pop,
-                    transform: `translateY(${(1 - pop) * 12}px)`,
+                    transform: `translateY(${(1 - pop) * 18}px) scale(${0.94 + pop * 0.06 + emphasis * 0.05})`,
                     borderRadius: radius.lg,
-                    border: `1px solid ${colors.border}`,
-                    backgroundColor: colors.surfaceMuted,
+                    border: `2px solid ${
+                      emphasis > 0.45
+                        ? isTarget
+                          ? colors.success
+                          : colors.primary
+                        : colors.border
+                    }`,
+                    backgroundColor:
+                      emphasis > 0.45
+                        ? isTarget
+                          ? colors.successSoft
+                          : colors.primarySoft
+                        : colors.surfaceMuted,
                     padding: '28px 24px',
                     display: 'flex',
                     flexDirection: 'column',
                     gap: 12,
                     minHeight: 140,
                     justifyContent: 'center',
+                    boxShadow:
+                      emphasis > 0.45
+                        ? `0 0 ${14 + emphasis * 22}px rgba(122,106,90,0.25)`
+                        : 'none',
                   }}
                 >
                   <div style={{display: 'flex', alignItems: 'center', gap: 12}}>
-                    <Icon size={30} color={colors.primary} strokeWidth={2} />
+                    <Icon
+                      size={30}
+                      color={emphasis > 0.45 ? (isTarget ? colors.success : colors.primary) : colors.primary}
+                      strokeWidth={2}
+                    />
                     <span
                       style={{
                         fontFamily: fontBody,
@@ -581,12 +898,45 @@ const BeatComposition: React.FC = () => {
                       color: colors.textPrimary,
                     }}
                   >
-                    {card.value}
+                    {displayValue}
                   </span>
                 </div>
               );
             })}
           </div>
+
+          {phaseCalc > 0.2 ? (
+            <div
+              style={{
+                position: 'absolute',
+                right: 36,
+                bottom: 36,
+                opacity: phaseCalc,
+                transform: `translateY(${(1 - phaseCalc) * 16}px)`,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                backgroundColor: colors.surface,
+                border: `2px solid ${colors.primary}`,
+                borderRadius: radius.lg,
+                padding: '14px 22px',
+                boxShadow: shadows.md,
+                zIndex: 25,
+              }}
+            >
+              <Sparkles size={28} color={colors.primary} strokeWidth={2} />
+              <span
+                style={{
+                  fontFamily: fontBody,
+                  fontWeight: 700,
+                  fontSize: 24,
+                  color: colors.textPrimary,
+                }}
+              >
+                Calculando parâmetros técnicos…
+              </span>
+            </div>
+          ) : null}
         </div>
       </div>
 
@@ -606,6 +956,47 @@ const BeatComposition: React.FC = () => {
           Criação de receita
         </Eyebrow>
       </div>
+
+      <CompCallout
+        label="Certificados"
+        sub="Ingredientes ICone"
+        icon={Globe}
+        tint={colors.success}
+        soft={colors.successSoft}
+        delay={COMP.certified}
+        x={420}
+        y={210}
+      />
+      <CompCallout
+        label="Workspace"
+        sub="Seus ingredientes"
+        icon={Building2}
+        tint={colors.primary}
+        soft={colors.primarySoft}
+        delay={COMP.custom}
+        x={1500}
+        y={240}
+      />
+      <CompCallout
+        label="Custo"
+        sub="Fornecedores vinculados"
+        icon={BadgeDollarSign}
+        tint={colors.warning}
+        soft={colors.warningSoft}
+        delay={COMP.supplier}
+        x={960}
+        y={180}
+      />
+      <CompCallout
+        label="Produção"
+        sub="Alvo · 5.000 g"
+        icon={Package}
+        tint={colors.success}
+        soft={colors.successSoft}
+        delay={COMP.target}
+        x={1580}
+        y={820}
+      />
     </AbsoluteFill>
   );
 };
@@ -613,13 +1004,21 @@ const BeatComposition: React.FC = () => {
 /* ─── Beat 2: Gauges ─────────────────────────────────────────────── */
 
 const BeatGauges: React.FC = () => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const fps = AUTHOR_FPS;
 
   const panelIn = spring({
     frame: frame - 2,
     fps,
-    config: {damping: 200, stiffness: 95},
+    config: {damping: 22, stiffness: 90, mass: 0.9},
+  });
+
+  // Temperatura entra depois da última linha assentar
+  const tempDelay = 8 + 11 * 7 + 36;
+  const tempIn = spring({
+    frame: frame - tempDelay,
+    fps,
+    config: {damping: 18, stiffness: 100, mass: 0.85},
   });
 
   return (
@@ -654,12 +1053,14 @@ const BeatGauges: React.FC = () => {
               flex: 1,
               display: 'grid',
               gridTemplateColumns: 'repeat(4, 1fr)',
-              gap: 10,
+              gridTemplateRows: 'repeat(3, 1fr)',
+              gap: 6,
               justifyItems: 'center',
-              alignContent: 'start',
+              alignItems: 'center',
               minHeight: 0,
               overflow: 'hidden',
-              paddingTop: 4,
+              paddingTop: 2,
+              paddingBottom: 4,
             }}
           >
             {GAUGES.map((gauge, i) => {
@@ -671,41 +1072,37 @@ const BeatGauges: React.FC = () => {
                   value={gauge.value}
                   fraction={gauge.fraction}
                   zones={ZONES}
-                  delay={8 + i * 4}
-                  size={168}
+                  delay={8 + i * 7}
+                  size={148}
                   statusLabel={st.label}
                   statusBg={st.bg}
                   statusColor={st.color}
+                  alert={gauge.status === 'out' || gauge.status === 'technical'}
                 />
               );
             })}
           </div>
 
-          {/* Temperatura em destaque — faixa própria abaixo do grid */}
           <div
             style={{
-              opacity: interpolate(frame, [8, 22], [0, 1], {
-                extrapolateLeft: 'clamp',
-                extrapolateRight: 'clamp',
-              }),
-              marginTop: 14,
+              opacity: tempIn,
+              transform: `translateY(${(1 - tempIn) * 20}px)`,
+              marginTop: 8,
               display: 'flex',
               alignItems: 'center',
-              gap: 22,
-              padding: '18px 28px',
+              gap: 18,
+              padding: '12px 22px',
               borderRadius: radius.lg,
               border: `2px solid rgba(37, 99, 235, 0.35)`,
               backgroundColor: colors.infoSoft,
-              boxShadow: '0 10px 28px rgba(37, 99, 235, 0.12)',
+              boxShadow: '0 8px 20px rgba(37, 99, 235, 0.1)',
               flexShrink: 0,
-              position: 'relative',
-              zIndex: 2,
             }}
           >
             <div
               style={{
-                width: 64,
-                height: 64,
+                width: 52,
+                height: 52,
                 borderRadius: radius.md,
                 backgroundColor: 'rgba(37, 99, 235, 0.14)',
                 border: '1px solid rgba(37, 99, 235, 0.25)',
@@ -713,20 +1110,21 @@ const BeatGauges: React.FC = () => {
                 alignItems: 'center',
                 justifyContent: 'center',
                 flexShrink: 0,
+                transform: `scale(${0.9 + tempIn * 0.1})`,
               }}
             >
-              <Snowflake size={32} color={colors.info} strokeWidth={2.25} />
+              <Snowflake size={28} color={colors.info} strokeWidth={2.25} />
             </div>
             <div style={{flex: 1, minWidth: 0}}>
               <div
                 style={{
                   fontFamily: fontDisplay,
                   fontWeight: 600,
-                  fontSize: 16,
+                  fontSize: 15,
                   letterSpacing: '0.12em',
                   textTransform: 'uppercase',
                   color: colors.info,
-                  marginBottom: 4,
+                  marginBottom: 2,
                 }}
               >
                 Temperatura ideal da vitrine
@@ -734,7 +1132,7 @@ const BeatGauges: React.FC = () => {
               <div
                 style={{
                   fontFamily: fontBody,
-                  fontSize: 18,
+                  fontSize: 16,
                   color: colors.textSecondary,
                 }}
               >
@@ -745,7 +1143,7 @@ const BeatGauges: React.FC = () => {
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 16,
+                gap: 14,
                 flexShrink: 0,
               }}
             >
@@ -753,7 +1151,7 @@ const BeatGauges: React.FC = () => {
                 style={{
                   fontFamily: fontBody,
                   fontWeight: 700,
-                  fontSize: 48,
+                  fontSize: 40,
                   lineHeight: 1,
                   color: colors.textPrimary,
                   letterSpacing: '-0.02em',
@@ -762,7 +1160,7 @@ const BeatGauges: React.FC = () => {
                 −12,5
                 <span
                   style={{
-                    fontSize: 26,
+                    fontSize: 22,
                     fontWeight: 700,
                     color: colors.info,
                     marginLeft: 6,
@@ -771,7 +1169,16 @@ const BeatGauges: React.FC = () => {
                   °C
                 </span>
               </span>
-              <StatusPill status="perfect" fontSize={18} />
+              <div
+                style={{
+                  opacity: interpolate(frame - tempDelay - 12, [0, 10], [0, 1], {
+                    extrapolateLeft: 'clamp',
+                    extrapolateRight: 'clamp',
+                  }),
+                }}
+              >
+                <StatusPill status="perfect" fontSize={16} />
+              </div>
             </div>
           </div>
         </div>
@@ -789,8 +1196,8 @@ const BeatGauges: React.FC = () => {
 /* ─── Beat 3: Resumo ─────────────────────────────────────────────── */
 
 const BeatResumo: React.FC = () => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const fps = AUTHOR_FPS;
 
   const panelIn = spring({
     frame: frame - 2,
@@ -909,21 +1316,63 @@ const BeatResumo: React.FC = () => {
 
 /* ─── Beat 4: Explicação ─────────────────────────────────────────── */
 
+const renderEmphasized = (text: string, emphasis: string, active: number) => {
+  const idx = text.toLowerCase().indexOf(emphasis.toLowerCase());
+  if (idx < 0) return text;
+  const before = text.slice(0, idx);
+  const match = text.slice(idx, idx + emphasis.length);
+  const after = text.slice(idx + emphasis.length);
+  return (
+    <>
+      {before}
+      <span
+        style={{
+          fontWeight: 700,
+          color: colors.textPrimary,
+          backgroundColor:
+            active > 0.55 ? 'rgba(239,232,223,0.9)' : 'transparent',
+          borderRadius: 4,
+          padding: active > 0.55 ? '0 4px' : 0,
+          boxDecorationBreak: 'clone',
+        }}
+      >
+        {match}
+      </span>
+      {after}
+    </>
+  );
+};
+
 const BeatExplanation: React.FC = () => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const fps = AUTHOR_FPS;
 
   const panelIn = spring({
     frame: frame - 2,
     fps,
-    config: {damping: 200, stiffness: 95},
+    config: {damping: 22, stiffness: 90, mass: 0.9},
   });
 
   const headerIn = spring({
+    frame: frame - 8,
+    fps,
+    config: {damping: 18, stiffness: 110, mass: 0.8},
+  });
+
+  const iconPulse = spring({
     frame: frame - 10,
     fps,
-    config: {damping: 200, stiffness: 100},
+    config: {damping: 12, stiffness: 160, mass: 0.65},
   });
+  // um único “pop” — depois estabiliza
+  const iconSettle = interpolate(frame, [10, 22, 36], [0, 1.08, 1], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+  });
+
+  const activeIndex = EXPLANATION_BLOCKS.reduce((acc, block, i) => {
+    return frame >= block.at ? i : acc;
+  }, -1);
 
   return (
     <AbsoluteFill>
@@ -960,12 +1409,19 @@ const BeatExplanation: React.FC = () => {
               padding: '28px 40px',
               display: 'flex',
               flexDirection: 'column',
-              gap: 20,
+              gap: 22,
               justifyContent: 'flex-start',
-              alignContent: 'flex-start',
             }}
           >
-            <div style={{opacity: headerIn, display: 'flex', alignItems: 'center', gap: 16}}>
+            <div
+              style={{
+                opacity: headerIn,
+                transform: `translateY(${(1 - headerIn) * 10}px)`,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 16,
+              }}
+            >
               <div
                 style={{
                   width: 56,
@@ -976,6 +1432,7 @@ const BeatExplanation: React.FC = () => {
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexShrink: 0,
+                  transform: `scale(${iconPulse * iconSettle})`,
                 }}
               >
                 <Sparkles size={28} color={colors.primary} strokeWidth={2} />
@@ -997,26 +1454,75 @@ const BeatExplanation: React.FC = () => {
               </div>
             </div>
 
-            {EXPLANATION_PARAS.map((para, i) => {
-              const lineIn = interpolate(frame - 22 - i * 16, [0, 12], [0, 1], {
+            {EXPLANATION_BLOCKS.map((block, i) => {
+              const lineIn = spring({
+                frame: frame - block.at,
+                fps,
+                config: {damping: 18, stiffness: 120, mass: 0.75},
+              });
+              const barIn = interpolate(frame - block.at, [0, 14], [0, 1], {
                 extrapolateLeft: 'clamp',
                 extrapolateRight: 'clamp',
               });
+              const isActive = i === activeIndex && lineIn > 0.4;
+              const caretBlink =
+                isActive && i < EXPLANATION_BLOCKS.length - 1
+                  ? 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(frame * 0.35))
+                  : isActive
+                    ? interpolate(frame - block.at, [40, 55], [1, 0], {
+                        extrapolateLeft: 'clamp',
+                        extrapolateRight: 'clamp',
+                      })
+                    : 0;
+
               return (
-                <p
-                  key={para}
+                <div
+                  key={block.text}
                   style={{
                     opacity: lineIn,
-                    transform: `translateY(${(1 - lineIn) * 12}px)`,
-                    margin: 0,
-                    fontFamily: fontBody,
-                    fontSize: 28,
-                    lineHeight: 1.45,
-                    color: colors.textSecondary,
+                    transform: `translateY(${(1 - lineIn) * 14}px)`,
+                    display: 'flex',
+                    gap: 16,
+                    alignItems: 'stretch',
                   }}
                 >
-                  {para}
-                </p>
+                  <div
+                    style={{
+                      width: 4,
+                      borderRadius: 2,
+                      backgroundColor: colors.primary,
+                      opacity: 0.35 + barIn * 0.65,
+                      transform: `scaleY(${barIn})`,
+                      transformOrigin: 'top',
+                      flexShrink: 0,
+                    }}
+                  />
+                  <p
+                    style={{
+                      margin: 0,
+                      fontFamily: fontBody,
+                      fontSize: 28,
+                      lineHeight: 1.45,
+                      color: isActive ? colors.textPrimary : colors.textSecondary,
+                      fontWeight: isActive ? 500 : 400,
+                      flex: 1,
+                    }}
+                  >
+                    {renderEmphasized(block.text, block.emphasis, lineIn)}
+                    <span
+                      style={{
+                        display: 'inline-block',
+                        width: 2,
+                        height: '0.9em',
+                        marginLeft: 3,
+                        verticalAlign: '-0.05em',
+                        backgroundColor: colors.primary,
+                        opacity: caretBlink,
+                        borderRadius: 1,
+                      }}
+                    />
+                  </p>
+                </div>
               );
             })}
           </div>
@@ -1032,11 +1538,259 @@ const BeatExplanation: React.FC = () => {
   );
 };
 
-/* ─── Beat 5: Valores Nutricionais ───────────────────────────────── */
+/* ─── Beat 5: Aba Valores Nutricionais (tabela ANVISA + CTAs) ─────── */
 
-const BeatNutrition: React.FC = () => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+const AnvisaNutritionTable: React.FC = () => {
+  const frame = useAuthoredFrame();
+  const fps = AUTHOR_FPS;
+
+  const enter = spring({
+    frame: frame - 4,
+    fps,
+    config: {damping: 200, stiffness: 95},
+  });
+
+  return (
+    <div
+      style={{
+        opacity: enter,
+        transform: `translateY(${(1 - enter) * 14}px)`,
+        width: 920,
+        backgroundColor: '#ffffff',
+        border: '3px solid #1a1a1a',
+        color: '#1a1a1a',
+        fontFamily: fontBody,
+        boxShadow: shadows.shell,
+        overflow: 'hidden',
+      }}
+    >
+      <div
+        style={{
+          textAlign: 'center',
+          fontWeight: 800,
+          fontSize: 28,
+          letterSpacing: '0.04em',
+          textTransform: 'uppercase',
+          padding: '14px 20px',
+          borderBottom: cellBorder,
+          lineHeight: 1.1,
+        }}
+      >
+        Informação nutricional
+      </div>
+
+      <div
+        style={{
+          padding: '12px 20px',
+          borderBottom: cellBorder,
+          fontSize: 18,
+          lineHeight: 1.4,
+        }}
+      >
+        <div>
+          <strong>Porções por embalagem:</strong> 8
+        </div>
+        <div>
+          <strong>Porção:</strong> 60 g (1 bola)
+        </div>
+      </div>
+
+      <table style={{width: '100%', borderCollapse: 'collapse', fontSize: 20}}>
+        <thead>
+          <tr>
+            <th
+              style={{
+                borderBottom: cellBorder,
+                borderRight: cellBorder,
+                padding: '10px 18px',
+                textAlign: 'left',
+                width: '52%',
+              }}
+            />
+            <th
+              style={{
+                borderBottom: cellBorder,
+                borderRight: cellBorder,
+                padding: '10px 10px',
+                textAlign: 'center',
+                fontWeight: 700,
+                fontSize: 18,
+              }}
+            >
+              60 g
+            </th>
+            <th
+              style={{
+                borderBottom: cellBorder,
+                borderRight: cellBorder,
+                padding: '10px 10px',
+                textAlign: 'center',
+                fontWeight: 700,
+                fontSize: 18,
+              }}
+            >
+              100 g
+            </th>
+            <th
+              style={{
+                borderBottom: cellBorder,
+                padding: '10px 10px',
+                textAlign: 'center',
+                fontWeight: 700,
+                fontSize: 18,
+              }}
+            >
+              %VD*
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {ANVISA_ROWS.map((row, i) => {
+            const rowIn = interpolate(frame - 8 - i * 3, [0, 6], [0, 1], {
+              extrapolateLeft: 'clamp',
+              extrapolateRight: 'clamp',
+            });
+            const isLast = i === ANVISA_ROWS.length - 1;
+            return (
+              <tr key={row.name} style={{opacity: rowIn}}>
+                <td
+                  style={{
+                    borderBottom: isLast ? 'none' : cellBorder,
+                    borderRight: cellBorder,
+                    padding: '9px 18px',
+                    paddingLeft: row.indent ? 34 : 18,
+                    fontWeight: row.indent ? 500 : 700,
+                  }}
+                >
+                  {row.name}
+                </td>
+                <td
+                  style={{
+                    borderBottom: isLast ? 'none' : cellBorder,
+                    borderRight: cellBorder,
+                    padding: '9px 10px',
+                    textAlign: 'center',
+                    fontWeight: 700,
+                  }}
+                >
+                  {row.portion}
+                </td>
+                <td
+                  style={{
+                    borderBottom: isLast ? 'none' : cellBorder,
+                    borderRight: cellBorder,
+                    padding: '9px 10px',
+                    textAlign: 'center',
+                    fontWeight: 700,
+                  }}
+                >
+                  {row.per100}
+                </td>
+                <td
+                  style={{
+                    borderBottom: isLast ? 'none' : cellBorder,
+                    padding: '9px 10px',
+                    textAlign: 'center',
+                    fontWeight: 700,
+                  }}
+                >
+                  {row.vd}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+
+      <div
+        style={{
+          borderTop: cellBorder,
+          padding: '10px 18px',
+          fontSize: 13,
+          lineHeight: 1.35,
+          color: '#333',
+        }}
+      >
+        *Percentual de valores diários com base em uma dieta de 2.000 kcal ou 8.400 kJ.
+        Seus valores diários podem ser maiores ou menores dependendo de suas necessidades
+        energéticas.
+      </div>
+    </div>
+  );
+};
+
+const NutritionCtaButton: React.FC<{
+  primary?: boolean;
+  icon: React.ComponentType<{size?: number; color?: string; strokeWidth?: number}>;
+  label: string;
+  /** 0–1: quanto este botão está em foco agora */
+  focus: number;
+  /** 0–1: estamos no trecho do VO dos CTAs */
+  ctaMode: number;
+}> = ({primary, icon: Icon, label, focus, ctaMode}) => {
+  const lift = focus * 4;
+  const scale = 1 + focus * 0.03;
+  const dim = ctaMode * (1 - focus) * 0.38;
+  const isHot = focus > 0.4;
+
+  const bg = primary
+    ? colors.primary
+    : isHot
+      ? colors.primarySoft
+      : colors.surface;
+  const fg = primary ? colors.textInverse : colors.primary;
+
+  return (
+    <div
+      style={{
+        position: 'relative',
+        flex: 1,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 12,
+        padding: '14px 22px',
+        borderRadius: radius.md,
+        backgroundColor: bg,
+        border: `1.5px solid ${
+          isHot ? colors.primary : primary ? colors.primary : colors.border
+        }`,
+        color: fg,
+        fontFamily: fontBody,
+        fontWeight: 600,
+        fontSize: 22,
+        opacity: 1 - dim,
+        boxShadow: isHot
+          ? `0 10px 28px rgba(63, 48, 40, ${0.12 + focus * 0.1})`
+          : shadows.sm,
+        transform: `translateY(${-lift}px) scale(${scale})`,
+        zIndex: isHot ? 2 : 1,
+      }}
+    >
+      {/* acento minimalista à esquerda */}
+      <div
+        style={{
+          position: 'absolute',
+          left: 0,
+          top: 10,
+          bottom: 10,
+          width: 3,
+          borderRadius: '0 2px 2px 0',
+          backgroundColor: primary ? 'rgba(255,255,255,0.9)' : colors.primary,
+          opacity: focus,
+          transform: `scaleY(${0.4 + focus * 0.6})`,
+        }}
+      />
+      <Icon size={22} color={fg} strokeWidth={2.2} />
+      {label}
+    </div>
+  );
+};
+
+const BeatNutrition: React.FC<{duration: number}> = ({duration}) => {
+  const frame = useAuthoredFrame();
+  const realFrame = useCurrentFrame();
+  const fps = AUTHOR_FPS;
 
   const panelIn = spring({
     frame: frame - 2,
@@ -1045,9 +1799,45 @@ const BeatNutrition: React.FC = () => {
   });
 
   const ctaIn = spring({
-    frame: frame - 28,
+    frame: frame - 10,
     fps,
     config: {damping: 14, stiffness: 130, mass: 0.7},
+  });
+
+  // Sync VO “E direto dessa mesma tela…” (~128.88s)
+  const ctaMode = interpolate(
+    realFrame,
+    [CTA_HIGHLIGHT_AT - 4, CTA_HIGHLIGHT_AT + 12, duration - 20, duration - 2],
+    [0, 1, 1, 0.7],
+    {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'},
+  );
+
+  /**
+   * Uma passagem só (sem loop):
+   * 1) Etiqueta sobe e segura
+   * 2) Cruza para Ficha Técnica e permanece
+   */
+  const local = Math.max(0, realFrame - CTA_HIGHLIGHT_AT);
+  const etiquetaFocus =
+    ctaMode *
+    interpolate(
+      local,
+      [0, sec(0.45), sec(2.6), sec(3.4)],
+      [0, 1, 1, 0],
+      {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'},
+    );
+  const fichaFocus =
+    ctaMode *
+    interpolate(
+      local,
+      [sec(2.8), sec(3.6), sec(8.5), duration],
+      [0, 1, 1, 1],
+      {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'},
+    );
+
+  const tableDim = interpolate(ctaMode, [0, 1], [1, 0.92], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
   });
 
   return (
@@ -1069,131 +1859,93 @@ const BeatNutrition: React.FC = () => {
         <div
           style={{
             flex: 1,
-            padding: '16px 48px 28px',
+            padding: '12px 48px 20px',
             display: 'flex',
             flexDirection: 'column',
             minHeight: 0,
-            gap: 16,
+            gap: 10,
           }}
         >
           <TabsBar
             active="Valores Nutricionais"
             tabIndex={3}
-            duration={BEAT.nutrition}
+            duration={duration}
           />
 
-          <div style={{opacity: ctaIn, display: 'flex', gap: 14}}>
-            <div
-              style={{
-                flex: 1,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 12,
-                padding: '18px 22px',
-                borderRadius: radius.md,
-                backgroundColor: colors.primary,
-                color: colors.textInverse,
-                fontFamily: fontBody,
-                fontWeight: 600,
-                fontSize: 24,
-              }}
-            >
-              <Tag size={24} color={colors.textInverse} />
-              Gerar Etiqueta
-            </div>
-            <div
-              style={{
-                flex: 1,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 12,
-                padding: '18px 22px',
-                borderRadius: radius.md,
-                backgroundColor: colors.surface,
-                border: `2px solid ${colors.primary}`,
-                color: colors.primary,
-                fontFamily: fontBody,
-                fontWeight: 600,
-                fontSize: 24,
-              }}
-            >
-              <ClipboardList size={24} color={colors.primary} />
-              Gerar Ficha Técnica
-            </div>
+          <div
+            style={{
+              opacity: ctaIn,
+              transform: `translateY(${(1 - ctaIn) * 10}px)`,
+              display: 'flex',
+              gap: 18,
+              flexShrink: 0,
+              zIndex: 5,
+              maxWidth: 920,
+              width: '100%',
+              alignSelf: 'center',
+              paddingTop: 4,
+              paddingBottom: 8,
+            }}
+          >
+            <NutritionCtaButton
+              primary
+              ctaMode={ctaMode}
+              focus={etiquetaFocus}
+              icon={Tag}
+              label="Gerar Etiqueta"
+            />
+            <NutritionCtaButton
+              ctaMode={ctaMode}
+              focus={fichaFocus}
+              icon={ClipboardList}
+              label="Gerar Ficha Técnica"
+            />
           </div>
 
           <div
             style={{
               flex: 1,
-              borderRadius: radius.lg,
-              border: `1px solid ${colors.border}`,
-              backgroundColor: colors.surfaceMuted,
-              padding: '28px 36px',
+              minHeight: 0,
               display: 'flex',
               flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 12,
+              opacity: tableDim,
             }}
           >
+            <AnvisaNutritionTable />
             <div
               style={{
+                opacity: interpolate(frame - 36, [0, 10], [0, 1], {
+                  extrapolateLeft: 'clamp',
+                  extrapolateRight: 'clamp',
+                }),
                 display: 'flex',
-                justifyContent: 'space-between',
-                marginBottom: 14,
-                fontFamily: fontBody,
+                alignItems: 'center',
+                gap: 10,
+                width: 920,
+                padding: '10px 16px',
+                borderRadius: radius.md,
+                backgroundColor: colors.surfaceMuted,
+                border: `1px solid ${colors.borderSoft}`,
+                flexShrink: 0,
               }}
             >
-              <span style={{fontWeight: 700, fontSize: 28, color: colors.textPrimary}}>
-                Informação nutricional
-              </span>
-              <span style={{fontSize: 20, color: colors.textMuted}}>
-                por 100 g · calculada automaticamente
+              <ShieldCheck size={22} color={colors.success} strokeWidth={2.2} />
+              <span
+                style={{
+                  fontFamily: fontBody,
+                  fontSize: 16,
+                  color: colors.textSecondary,
+                  fontWeight: 500,
+                }}
+              >
+                Calculada automaticamente a partir dos ingredientes · normas{' '}
+                <span style={{fontWeight: 700, color: colors.textPrimary}}>ANVISA</span>
+                {' '}(RDC 429/2020)
               </span>
             </div>
-            {NUTRITION_ROWS.map((row, i) => {
-              const rowIn = interpolate(frame - 12 - i * 5, [0, 8], [0, 1], {
-                extrapolateLeft: 'clamp',
-                extrapolateRight: 'clamp',
-              });
-              return (
-                <div
-                  key={row.name}
-                  style={{
-                    opacity: rowIn,
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    padding: '14px 4px',
-                    borderBottom:
-                      i < NUTRITION_ROWS.length - 1
-                        ? `1px solid ${colors.borderSoft}`
-                        : 'none',
-                    fontFamily: fontBody,
-                    fontSize: 24,
-                  }}
-                >
-                  <span style={{color: colors.textSecondary}}>{row.name}</span>
-                  <span style={{fontWeight: 700, color: colors.textPrimary}}>{row.value}</span>
-                </div>
-              );
-            })}
-          </div>
-
-          <div
-            style={{
-              opacity: interpolate(frame, [70, 90], [0, 1], {
-                extrapolateLeft: 'clamp',
-                extrapolateRight: 'clamp',
-              }),
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              fontFamily: fontBody,
-              fontSize: 18,
-              color: colors.textMuted,
-            }}
-          >
-            <FileText size={20} color={colors.primary} />
-            Sem retrabalho — etiqueta e ficha sempre coerentes com a formulação.
           </div>
         </div>
       </div>
@@ -1214,6 +1966,7 @@ export const Scene05: React.FC = () => {
   const fromResumo = fromGauges + BEAT.gauges;
   const fromExplanation = fromResumo + BEAT.resumo;
   const fromNutrition = fromExplanation + BEAT.explanation;
+  const nutritionDur = Math.max(BEAT.nutrition, DUR.scene05 - fromNutrition);
 
   return (
     <SceneBackground>
@@ -1235,10 +1988,10 @@ export const Scene05: React.FC = () => {
       </Sequence>
       <Sequence
         from={fromNutrition}
-        durationInFrames={BEAT.nutrition}
+        durationInFrames={nutritionDur}
         name="Valores Nutricionais"
       >
-        <BeatNutrition />
+        <BeatNutrition duration={nutritionDur} />
       </Sequence>
     </SceneBackground>
   );

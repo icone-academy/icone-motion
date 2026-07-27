@@ -25,7 +25,7 @@ const base = {
 export const RemotionRoot: React.FC = () => {
   return (
     <>
-      {/* Vídeo completo (4:15 — sync VO) */}
+      {/* Vídeo completo (~4:02.7 — sync VO a 60fps) */}
       <Composition
         id="Main"
         component={Main}

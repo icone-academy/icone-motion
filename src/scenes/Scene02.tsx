@@ -5,9 +5,9 @@ import {
   interpolate,
   spring,
   staticFile,
-  useCurrentFrame,
   useVideoConfig,
 } from 'remotion';
+import {AUTHOR_FPS, T, useAuthoredFrame} from '../timeline';
 import {
   ArrowRight,
   BookOpen,
@@ -17,6 +17,7 @@ import {
   ShoppingCart,
 } from 'lucide-react';
 import {SceneBackground} from '../components/SceneBackground';
+import {SceneFade} from '../components/SceneFade';
 import {AnimatedText} from '../components/AnimatedText';
 import {colors, radius, shadows, tracking, type} from '../theme';
 import {fontBody, fontDisplay} from '../fonts';
@@ -73,7 +74,7 @@ const PILLARS = [
 const CENTER = {x: 960, y: 460};
 
 const ImpactRings: React.FC = () => {
-  const frame = useCurrentFrame();
+  const frame = useAuthoredFrame();
 
   return (
     <>
@@ -116,8 +117,8 @@ const BrandCore: React.FC<{scaleBoost?: number; compact?: boolean}> = ({
   scaleBoost = 1,
   compact = false,
 }) => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const fps = AUTHOR_FPS;
 
   const slam = spring({
     frame: frame - 10,
@@ -201,8 +202,8 @@ const ConvergingPillar: React.FC<(typeof PILLARS)[number] & {index: number}> = (
   color,
   index,
 }) => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const fps = AUTHOR_FPS;
 
   const enter = spring({
     frame: frame - PILLARS_IN - index * 10,
@@ -302,8 +303,8 @@ const PLATFORM_MODULES = [
 ];
 
 const UnifiedPlatform: React.FC<{delay: number}> = ({delay}) => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const fps = AUTHOR_FPS;
 
   const rise = spring({
     frame: frame - delay,
@@ -507,8 +508,8 @@ const UnifiedPlatform: React.FC<{delay: number}> = ({delay}) => {
 };
 
 export const Scene02: React.FC = () => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const fps = AUTHOR_FPS;
 
   // Flash taupe no impacto inicial
   const flash = interpolate(frame, [0, 8, 28], [0.35, 0.12, 0], {
@@ -559,7 +560,8 @@ export const Scene02: React.FC = () => {
   );
 
   return (
-    <SceneBackground>
+    <SceneFade fadeOut={20} exitToScale={0.985}>
+      <SceneBackground>
       {/* Flash de impacto */}
       <AbsoluteFill
         style={{
@@ -687,6 +689,7 @@ export const Scene02: React.FC = () => {
           <UnifiedPlatform delay={PLATFORM_IN} />
         </AbsoluteFill>
       ) : null}
-    </SceneBackground>
+      </SceneBackground>
+    </SceneFade>
   );
 };

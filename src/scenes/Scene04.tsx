@@ -3,9 +3,9 @@ import {
   AbsoluteFill,
   interpolate,
   spring,
-  useCurrentFrame,
   useVideoConfig,
 } from 'remotion';
+import {AUTHOR_FPS, T, useAuthoredFrame} from '../timeline';
 import {
   BadgeCheck,
   ExternalLink,
@@ -37,8 +37,8 @@ const SourceSeal: React.FC<{name: string; full: string; delay: number}> = ({
   full,
   delay,
 }) => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const fps = AUTHOR_FPS;
 
   const pop = spring({
     frame: frame - delay,
@@ -119,8 +119,8 @@ const SourceSeal: React.FC<{name: string; full: string; delay: number}> = ({
 };
 
 export const Scene04: React.FC = () => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const fps = AUTHOR_FPS;
 
   const panelIn = spring({
     frame: frame - 10,

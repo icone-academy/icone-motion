@@ -3,9 +3,9 @@ import {
   AbsoluteFill,
   interpolate,
   spring,
-  useCurrentFrame,
   useVideoConfig,
 } from 'remotion';
+import {AUTHOR_FPS, T, useAuthoredFrame} from '../timeline';
 import {CheckCircle2, FlaskConical, Leaf, Milk, Snowflake, Wheat} from 'lucide-react';
 import {SceneBackground} from '../components/SceneBackground';
 import {Eyebrow} from '../components/Eyebrow';
@@ -43,8 +43,8 @@ const Particle: React.FC<(typeof PARTICLES)[number] & {index: number}> = ({
   label,
   index,
 }) => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const fps = AUTHOR_FPS;
 
   const enter = spring({
     frame: frame - 8 - index * 6,
@@ -114,8 +114,8 @@ const Particle: React.FC<(typeof PARTICLES)[number] & {index: number}> = ({
 };
 
 export const Scene07: React.FC = () => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const fps = AUTHOR_FPS;
 
   const blendPop = spring({
     frame: frame - BLEND_POP,

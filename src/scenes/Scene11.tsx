@@ -5,9 +5,9 @@ import {
   interpolate,
   spring,
   staticFile,
-  useCurrentFrame,
   useVideoConfig,
 } from 'remotion';
+import {AUTHOR_FPS, T, useAuthoredFrame} from '../timeline';
 import {Globe, Sparkles} from 'lucide-react';
 import {SceneBackground} from '../components/SceneBackground';
 import {LogoReveal} from '../components/LogoReveal';
@@ -23,8 +23,8 @@ import {fontBody, fontDisplay} from '../fonts';
  */
 
 export const Scene11: React.FC = () => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const fps = AUTHOR_FPS;
 
   const ctaPop = spring({
     frame: frame - 96,

@@ -3,9 +3,9 @@ import {
   AbsoluteFill,
   interpolate,
   spring,
-  useCurrentFrame,
   useVideoConfig,
 } from 'remotion';
+import {AUTHOR_FPS, T, useAuthoredFrame} from '../timeline';
 import {Building2, Package, ShoppingCart, Star, Truck} from 'lucide-react';
 import {SceneBackground} from '../components/SceneBackground';
 import {Eyebrow} from '../components/Eyebrow';
@@ -36,8 +36,8 @@ const INGREDIENTS = [
 ];
 
 export const Scene09: React.FC = () => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const fps = AUTHOR_FPS;
 
   const recipeIn = spring({frame: frame - 10, fps, config: {damping: 200, stiffness: 90}});
   const cartIn = spring({frame: frame - 40, fps, config: {damping: 13, stiffness: 120, mass: 0.8}});

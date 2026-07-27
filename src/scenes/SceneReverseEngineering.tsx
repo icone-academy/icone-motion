@@ -3,9 +3,9 @@ import {
   AbsoluteFill,
   interpolate,
   spring,
-  useCurrentFrame,
   useVideoConfig,
 } from 'remotion';
+import {AUTHOR_FPS, T, useAuthoredFrame} from '../timeline';
 import {
   Barcode,
   CheckCircle2,
@@ -73,8 +73,8 @@ const GenericProduct: React.FC<{delay: number; scale?: number}> = ({
   delay,
   scale = 1,
 }) => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const fps = AUTHOR_FPS;
 
   const pop = spring({
     frame: frame - delay,
@@ -174,8 +174,8 @@ const GenericProduct: React.FC<{delay: number; scale?: number}> = ({
 
 /** Painel da ICone recebendo os dados do rótulo. */
 const LabelPanel: React.FC<{delay: number}> = ({delay}) => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const fps = AUTHOR_FPS;
 
   const enter = spring({
     frame: frame - delay,
@@ -313,8 +313,8 @@ const LabelPanel: React.FC<{delay: number}> = ({delay}) => {
 
 /** Processamento — mesmo estilo do anel da cena de correção automática. */
 const ReverseProcessing: React.FC<{delay: number}> = ({delay}) => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const fps = AUTHOR_FPS;
   const local = frame - delay;
 
   const enter = spring({frame: local, fps, config: {damping: 200, stiffness: 100}});
@@ -463,8 +463,8 @@ const ReverseProcessing: React.FC<{delay: number}> = ({delay}) => {
 };
 
 export const SceneReverseEngineering: React.FC = () => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const fps = AUTHOR_FPS;
 
   const introOpacity = interpolate(frame, [SCAN_IN - 18, SCAN_IN], [1, 0], {
     extrapolateLeft: 'clamp',

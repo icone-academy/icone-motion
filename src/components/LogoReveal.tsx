@@ -1,13 +1,7 @@
 import React from 'react';
-import {
-  Img,
-  interpolate,
-  spring,
-  staticFile,
-  useCurrentFrame,
-  useVideoConfig,
-} from 'remotion';
+import {Img, interpolate, spring, staticFile} from 'remotion';
 import {colors} from '../theme';
+import {AUTHOR_FPS, useAuthoredFrame} from '../timeline';
 
 /**
  * Reveal do logotipo ICone: halo suave + scale spring.
@@ -20,13 +14,13 @@ export const LogoReveal: React.FC<{
   variant?: 'light' | 'dark';
   glow?: boolean;
 }> = ({delay = 0, size = 220, variant = 'light', glow = true}) => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const fps = AUTHOR_FPS;
 
   const scale = spring({
     frame: frame - delay,
     fps,
-    config: {damping: 14, stiffness: 110, mass: 0.9},
+    config: {damping: 18, stiffness: 100, mass: 0.95},
   });
 
   const opacity = interpolate(frame - delay, [0, 14], [0, 1], {

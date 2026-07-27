@@ -3,3 +3,9 @@ out
 .DS_Store
 *.log
 .wsl-render
+bin/ffmpeg-tmp
+bin/ffmpeg-btbn.zip
+bin/ffmpeg-essentials.zip
+bin/ffmpeg/*.exe
+public/audio/vo-16k.wav
+public/audio/vo.mpeg

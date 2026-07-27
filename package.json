@@ -5,19 +5,29 @@
   "description": "Motion graphics institucional da ICone — plataforma para gelateria profissional (Remotion)",
   "scripts": {
     "dev": "remotion studio",
-    "render": "remotion render Main out/icone-institucional.mp4",
+    "predev": "powershell -ExecutionPolicy Bypass -File scripts/ensure-ffmpeg.ps1",
+    "render": "remotion render Main out/icone-institucional.mp4 --concurrency=4",
+    "prerender": "powershell -ExecutionPolicy Bypass -File scripts/ensure-ffmpeg.ps1",
     "render:wsl": "wsl -d Ubuntu-24.04 -- bash scripts/wsl-render.sh Main out/icone-institucional.mp4",
     "render:scene": "remotion render",
     "fix:compositor": "powershell -ExecutionPolicy Bypass -File scripts/fix-compositor.ps1",
-    "typecheck": "tsc --noEmit"
+    "fix:ffmpeg": "powershell -ExecutionPolicy Bypass -File scripts/ensure-ffmpeg.ps1",
+    "typecheck": "tsc --noEmit",
+    "postinstall": "powershell -ExecutionPolicy Bypass -File scripts/ensure-ffmpeg.ps1"
+  },
+  "engines": {
+    "node": ">=18 <=22"
   },
   "dependencies": {
-    "@remotion/cli": "^4.0.257",
-    "@remotion/google-fonts": "^4.0.257",
+    "@remotion/cli": "4.0.500",
+    "@remotion/google-fonts": "4.0.500",
     "lucide-react": "^0.525.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "remotion": "^4.0.257"
+    "remotion": "4.0.500"
+  },
+  "optionalDependencies": {
+    "@remotion/compositor-win32-x64-msvc": "4.0.500"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",

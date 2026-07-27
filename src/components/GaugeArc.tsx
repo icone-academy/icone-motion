@@ -1,7 +1,8 @@
 import React from 'react';
-import {interpolate, spring, useCurrentFrame, useVideoConfig} from 'remotion';
+import {interpolate, spring} from 'remotion';
 import {colors, radius, shadows} from '../theme';
 import {fontBody} from '../fonts';
+import {AUTHOR_FPS, useAuthoredFrame} from '../timeline';
 import {Card} from './Card';
 import {Pill} from './Pill';
 
@@ -13,7 +14,7 @@ export type GaugeZone = {
   color: string;
 };
 
-const SWEEP = 270; // arco de ~270°, como no workbench
+const SWEEP = 270;
 const START_ANGLE = -135;
 
 const polar = (cx: number, cy: number, r: number, angleDeg: number) => {
@@ -34,15 +35,30 @@ const arcPath = (
   return `M ${s.x} ${s.y} A ${r} ${r} 0 ${large} 1 ${e.x} ${e.y}`;
 };
 
+/** Conta o número no valor (ex.: "4,2%" → 4.2) e formata de volta. */
+const formatCountedValue = (value: string, progress: number): string => {
+  const match = value.match(/^(-?\d+(?:[.,]\d+)?)(.*)$/);
+  if (!match) return value;
+  const raw = match[1].replace(',', '.');
+  const suffix = match[2] ?? '';
+  const target = Number(raw);
+  if (Number.isNaN(target)) return value;
+  const current = target * Math.max(0, Math.min(1, progress));
+  const decimals = raw.includes('.') ? raw.split('.')[1].length : 0;
+  const formatted =
+    decimals > 0
+      ? current.toFixed(decimals).replace('.', ',')
+      : String(Math.round(current));
+  return `${formatted}${suffix}`;
+};
+
 /**
- * Gauge circular fiel ao RecipeWorkbenchGauge: arco 270° com zonas
- * coloridas, agulha animada (~480ms) e valor grande no centro.
+ * Gauge circular: arco 270°, agulha, contagem do valor e pill de status
+ * atrasada — motion contido, sem exagero.
  */
 export const GaugeArc: React.FC<{
   label: string;
-  /** valor exibido no centro (string pronta — PAC/POD sem %) */
   value: string;
-  /** posição da agulha, 0–1 */
   fraction: number;
   zones: GaugeZone[];
   delay?: number;
@@ -50,7 +66,6 @@ export const GaugeArc: React.FC<{
   statusLabel?: string;
   statusBg?: string;
   statusColor?: string;
-  /** pulso de alerta no card (para gauges fora da faixa) */
   alert?: boolean;
   bare?: boolean;
 }> = ({
@@ -66,37 +81,50 @@ export const GaugeArc: React.FC<{
   alert = false,
   bare = false,
 }) => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const fps = AUTHOR_FPS;
 
   const cx = size / 2;
   const cy = size / 2;
   const r = size / 2 - 18;
   const stroke = size * 0.075;
 
-  // Entrada do card
   const enter = spring({
     frame: frame - delay,
     fps,
-    config: {damping: 200, stiffness: 130},
+    config: {damping: 22, stiffness: 95, mass: 0.9},
   });
 
-  // Agulha: sweep de entrada ~480ms (≈14 frames) ease-out
   const needleProgress = spring({
-    frame: frame - delay - 6,
+    frame: frame - delay - 8,
     fps,
-    durationInFrames: 16,
-    config: {damping: 18, stiffness: 140, mass: 0.7},
+    durationInFrames: 22,
+    config: {damping: 20, stiffness: 110, mass: 0.85},
   });
   const shownFraction = Math.max(0, Math.min(1, fraction)) * needleProgress;
   const needleAngle = START_ANGLE + SWEEP * shownFraction;
-  const needleTip = polar(cx, cy, r - stroke * 0.9, needleAngle);
-  const needleBase = polar(cx, cy, size * 0.06, needleAngle + 180);
+  const needleTip = polar(cx, cy, r - stroke * 1.35, needleAngle);
+  const needleBase = polar(cx, cy, size * 0.055, needleAngle + 180);
 
-  // Pulso de alerta (borda vermelha respirando)
-  const pulse = alert ? 0.5 + 0.5 * Math.sin((frame - delay) / 6) : 0;
+  const countProgress = interpolate(frame - delay - 8, [0, 22], [0, 1], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+  });
+  const displayValue = formatCountedValue(value, countProgress);
 
-  const gap = 1.2; // graus de respiro entre segmentos
+  // Pill só depois da agulha assentar
+  const statusIn = spring({
+    frame: frame - delay - 28,
+    fps,
+    config: {damping: 18, stiffness: 120, mass: 0.75},
+  });
+
+  // Alerta bem suave (só “Atenção”)
+  const pulse = alert
+    ? 0.35 + 0.65 * (0.5 + 0.5 * Math.sin((frame - delay) * 0.12))
+    : 0;
+
+  const gap = 1.2;
 
   const gaugeSvg = (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
@@ -112,16 +140,13 @@ export const GaugeArc: React.FC<{
             strokeWidth={stroke}
             strokeLinecap="round"
             fill="none"
-            opacity={interpolate(
-              frame - delay - i * 2,
-              [0, 8],
-              [0, 1],
-              {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'},
-            )}
+            opacity={interpolate(frame - delay - i * 3, [0, 10], [0, 1], {
+              extrapolateLeft: 'clamp',
+              extrapolateRight: 'clamp',
+            })}
           />
         );
       })}
-      {/* Agulha */}
       <line
         x1={needleBase.x}
         y1={needleBase.y}
@@ -142,26 +167,29 @@ export const GaugeArc: React.FC<{
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: 4,
+        gap: 10,
       }}
     >
-      <div style={{position: 'relative', width: size, height: size * 0.88}}>
+      <div style={{position: 'relative', width: size, height: size * 0.9}}>
         {gaugeSvg}
         <div
           style={{
             position: 'absolute',
-            top: '54%',
+            top: '72%',
             left: 0,
             right: 0,
             textAlign: 'center',
-            transform: 'translateY(30%)',
+            transform: 'translateY(-10%)',
             fontFamily: fontBody,
             fontWeight: 700,
-            fontSize: size * 0.16,
+            fontSize: size * 0.145,
             color: colors.textPrimary,
+            letterSpacing: '-0.02em',
+            lineHeight: 1,
+            paddingTop: size * 0.02,
           }}
         >
-          {value}
+          {displayValue}
         </div>
       </div>
       <div
@@ -170,26 +198,34 @@ export const GaugeArc: React.FC<{
           fontWeight: 600,
           fontSize: size * 0.085,
           color: colors.textSecondary,
+          marginTop: 2,
         }}
       >
         {label}
       </div>
       {statusLabel ? (
-        <Pill
-          bg={statusBg ?? colors.successSoft}
-          color={statusColor ?? colors.success}
-          fontSize={size * 0.068}
-          style={{marginTop: 4}}
+        <div
+          style={{
+            opacity: statusIn,
+            transform: `translateY(${(1 - statusIn) * 8}px) scale(${0.92 + statusIn * 0.08})`,
+            marginTop: 4,
+          }}
         >
-          {statusLabel}
-        </Pill>
+          <Pill
+            bg={statusBg ?? colors.successSoft}
+            color={statusColor ?? colors.success}
+            fontSize={size * 0.068}
+          >
+            {statusLabel}
+          </Pill>
+        </div>
       ) : null}
     </div>
   );
 
   if (bare) {
     return (
-      <div style={{opacity: enter, transform: `scale(${0.92 + enter * 0.08})`}}>
+      <div style={{opacity: enter, transform: `scale(${0.94 + enter * 0.06})`}}>
         {inner}
       </div>
     );
@@ -199,18 +235,18 @@ export const GaugeArc: React.FC<{
     <div
       style={{
         opacity: enter,
-        transform: `translateY(${(1 - enter) * 24}px) scale(${0.94 + enter * 0.06})`,
+        transform: `translateY(${(1 - enter) * 18}px) scale(${0.96 + enter * 0.04})`,
       }}
     >
       <Card
         radiusSize={radius.lg}
         style={{
-          padding: '18px 22px 20px',
+          padding: '14px 16px 16px',
           borderColor: alert
-            ? `rgba(220, 38, 38, ${0.35 + pulse * 0.45})`
+            ? `rgba(217, 119, 6, ${0.25 + pulse * 0.35})`
             : colors.border,
           boxShadow: alert
-            ? `0 8px 24px 0 rgba(194, 65, 12, ${0.08 + pulse * 0.1})`
+            ? `0 6px 18px 0 rgba(217, 119, 6, ${0.06 + pulse * 0.08})`
             : shadows.md,
         }}
       >

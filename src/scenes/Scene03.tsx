@@ -4,9 +4,9 @@ import {
   interpolate,
   Sequence,
   spring,
-  useCurrentFrame,
   useVideoConfig,
 } from 'remotion';
+import {AUTHOR_FPS, DUR, T, useAuthoredFrame} from '../timeline';
 import {
   BadgeCheck,
   ClipboardList,
@@ -23,6 +23,7 @@ import {
   Thermometer,
 } from 'lucide-react';
 import {SceneBackground} from '../components/SceneBackground';
+import {SceneFade} from '../components/SceneFade';
 import {Eyebrow} from '../components/Eyebrow';
 import {Pill} from '../components/Pill';
 import {GaugeBar} from '../components/GaugeBar';
@@ -31,7 +32,7 @@ import {fontBody, fontDisplay} from '../fonts';
 
 /**
  * Cena 3 — Banco de ingredientes em beats fullscreen (como a receita):
- * 1) Lista  2–6) Tour de abas: Geral → Composição → Nutrição → Dosagem → Fonte
+ * 1) Lista + chips saltando  2–6) Tour de abas: Geral → … → Fonte
  */
 
 export const BEAT = {
@@ -54,6 +55,9 @@ export const SCENE03_TOTAL =
 const TABS = ['Geral', 'Composição', 'Tabela nutricional', 'Dosagem', 'Fonte'] as const;
 type TabName = (typeof TABS)[number];
 
+/** Dentro do beat da lista: destaque → chips voam → fade. */
+const CHIPS_FLY = 88;
+
 const ROWS = [
   {name: 'Leite em pó desnatado', family: 'Lácteos', agua: 0.04, gordura: 0.1, acucar: 0.52, pac: 0.5, pod: 0.42},
   {name: 'Pistache puro', family: 'Oleaginosas', agua: 0.05, gordura: 0.45, acucar: 0.08, pac: 0.3, pod: 0.1},
@@ -61,6 +65,17 @@ const ROWS = [
   {name: 'Dextrose', family: 'Açúcares', agua: 0.08, gordura: 0.0, acucar: 0.92, pac: 1.9, pod: 0.74},
   {name: 'Creme de leite 35%', family: 'Lácteos', agua: 0.59, gordura: 0.35, acucar: 0.03, pac: 0.06, pod: 0.03},
   {name: 'Polpa de morango', family: 'Frutas', agua: 0.9, gordura: 0.0, acucar: 0.07, pac: 0.08, pod: 0.06},
+];
+
+const CHIP_ORIGIN = {x: 960, y: 520};
+
+const FLYING_CHIPS = [
+  {label: 'Quanto usar', value: '8–11%', icon: Scale, bg: colors.warningSoft, color: colors.warning, to: {x: 280, y: 200}},
+  {label: 'Temperatura', value: '65–70 °C', icon: Thermometer, bg: colors.infoSoft, color: colors.info, to: {x: 1640, y: 220}},
+  {label: 'Inserção', value: 'Pós-pasteurização', icon: Snowflake, bg: colors.primarySoft, color: colors.primary, to: {x: 260, y: 860}},
+  {label: 'Gordura', value: '45%', icon: FlaskConical, bg: '#FEF3C7', color: colors.fatAmber, to: {x: 1660, y: 840}},
+  {label: 'Dose máx.', value: '12%', icon: ClipboardList, bg: colors.dangerSoft, color: colors.danger, to: {x: 420, y: 140}},
+  {label: 'PAC · POD', value: '0,50 · 0,42', icon: Link2, bg: '#F5F3FF', color: colors.pacViolet, to: {x: 1500, y: 140}},
 ];
 
 const MiniMetric: React.FC<{fraction: number; color: string; grow: number}> = ({
@@ -88,18 +103,109 @@ const MiniMetric: React.FC<{fraction: number; color: string; grow: number}> = ({
   </div>
 );
 
+const FlyingChip: React.FC<(typeof FLYING_CHIPS)[number] & {index: number}> = ({
+  label,
+  value,
+  icon: Icon,
+  bg,
+  color,
+  to,
+  index,
+}) => {
+  const frame = useAuthoredFrame();
+  const fps = AUTHOR_FPS;
+
+  const delay = CHIPS_FLY + index * 5;
+  const fly = spring({
+    frame: frame - delay,
+    fps,
+    config: {damping: 14, stiffness: 90, mass: 0.85},
+  });
+
+  const jump = Math.sin(Math.min(1, Math.max(0, fly)) * Math.PI) * 90;
+  const x = CHIP_ORIGIN.x + (to.x - CHIP_ORIGIN.x) * fly;
+  const y = CHIP_ORIGIN.y + (to.y - CHIP_ORIGIN.y) * fly - jump;
+  const opacity = interpolate(
+    frame,
+    [delay, delay + 8, BEAT.list - 18, BEAT.list - 4],
+    [0, 1, 1, 0],
+    {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'},
+  );
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: x,
+        top: y,
+        transform: `translate(-50%, -50%) scale(${0.55 + fly * 0.55}) rotate(${(1 - fly) * (index % 2 === 0 ? -8 : 8)}deg)`,
+        opacity,
+        zIndex: 20,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 14,
+        backgroundColor: colors.surface,
+        border: `1.5px solid ${color}`,
+        borderRadius: radius.lg,
+        boxShadow: shadows.shell,
+        padding: '14px 22px',
+        minWidth: 220,
+      }}
+    >
+      <div
+        style={{
+          width: 48,
+          height: 48,
+          borderRadius: radius.md,
+          backgroundColor: bg,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+        }}
+      >
+        <Icon size={26} color={color} strokeWidth={2} />
+      </div>
+      <div style={{display: 'flex', flexDirection: 'column', gap: 2}}>
+        <span
+          style={{
+            fontFamily: fontBody,
+            fontWeight: 500,
+            fontSize: 16,
+            color: colors.textMuted,
+            textTransform: 'uppercase',
+            letterSpacing: '0.06em',
+          }}
+        >
+          {label}
+        </span>
+        <span
+          style={{
+            fontFamily: fontDisplay,
+            fontWeight: 700,
+            fontSize: 26,
+            color: colors.textPrimary,
+          }}
+        >
+          {value}
+        </span>
+      </div>
+    </div>
+  );
+};
+
 const TabsBar: React.FC<{
   active: TabName;
   tabIndex: number;
   duration: number;
 }> = ({active, tabIndex, duration}) => {
-  const frame = useCurrentFrame();
+  const frame = useAuthoredFrame();
   const local = Math.min(1, Math.max(0, frame / Math.max(1, duration - 1)));
   const progressPct = ((tabIndex + local) / TABS.length) * 100;
 
   return (
-    <div style={{marginBottom: 8}}>
-      <div style={{display: 'flex', gap: 10, marginBottom: 12, flexWrap: 'wrap'}}>
+    <div style={{marginBottom: 4, flexShrink: 0}}>
+      <div style={{display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap'}}>
         {TABS.map((tab, i) => {
           const isActive = tab === active;
           const visited = i < tabIndex;
@@ -109,8 +215,8 @@ const TabsBar: React.FC<{
               style={{
                 fontFamily: fontBody,
                 fontWeight: 600,
-                fontSize: 22,
-                padding: '12px 20px',
+                fontSize: 20,
+                padding: '10px 16px',
                 borderRadius: radius.md,
                 border: `1px solid ${
                   isActive ? 'rgba(122,106,90,0.45)' : colors.borderSoft
@@ -154,13 +260,22 @@ const TabsBar: React.FC<{
 };
 
 const BeatList: React.FC = () => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const fps = AUTHOR_FPS;
 
   const highlight = spring({
-    frame: frame - 70,
+    frame: frame - 55,
     fps,
     config: {damping: 200, stiffness: 120},
+  });
+
+  const listFade = interpolate(frame, [BEAT.list - 16, BEAT.list - 2], [1, 0.35], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+  });
+  const listScale = interpolate(frame, [CHIPS_FLY, BEAT.list - 2], [1, 1.04], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
   });
 
   return (
@@ -171,6 +286,8 @@ const BeatList: React.FC = () => {
           justifyContent: 'center',
           paddingTop: 28,
           paddingBottom: 36,
+          opacity: listFade,
+          transform: `scale(${listScale})`,
         }}
       >
         <div
@@ -271,13 +388,20 @@ const BeatList: React.FC = () => {
             const isHighlighted = i === 1;
             const hl = isHighlighted ? highlight : 0;
             const dimOthers = !isHighlighted ? highlight * 0.55 : 0;
+            const burst =
+              isHighlighted && frame >= CHIPS_FLY
+                ? interpolate(frame, [CHIPS_FLY, CHIPS_FLY + 10, CHIPS_FLY + 26], [0, 1, 0], {
+                    extrapolateLeft: 'clamp',
+                    extrapolateRight: 'clamp',
+                  })
+                : 0;
 
             return (
               <div
                 key={row.name}
                 style={{
                   opacity: enter * (1 - dimOthers),
-                  transform: `translateY(${(1 - enter) * 24}px) scale(${1 + hl * 0.015})`,
+                  transform: `translateY(${(1 - enter) * 24}px) scale(${1 + hl * 0.015 + burst * 0.04})`,
                   display: 'grid',
                   gridTemplateColumns: '2.2fr 1.2fr repeat(5, 1fr)',
                   gap: 14,
@@ -291,7 +415,9 @@ const BeatList: React.FC = () => {
                   border: `1.5px solid ${
                     isHighlighted ? colors.primary : colors.borderSoft
                   }`,
-                  boxShadow: isHighlighted ? shadows.md : 'none',
+                  boxShadow: isHighlighted
+                    ? `${shadows.md}, 0 0 ${18 + burst * 28}px rgba(122,106,90,${0.18 + burst * 0.35})`
+                    : 'none',
                 }}
               >
                 <span
@@ -317,6 +443,12 @@ const BeatList: React.FC = () => {
           })}
         </div>
       </AbsoluteFill>
+
+      {frame >= CHIPS_FLY
+        ? FLYING_CHIPS.map((chip, i) => (
+            <FlyingChip key={chip.label} {...chip} index={i} />
+          ))
+        : null}
     </SceneBackground>
   );
 };
@@ -329,15 +461,23 @@ const InfoCard: React.FC<{
   color: string;
   delay: number;
   highlight?: boolean;
+  dense?: boolean;
   style?: React.CSSProperties;
-}> = ({icon: Icon, title, lines, bg, color, delay, highlight, style}) => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+}> = ({icon: Icon, title, lines, bg, color, delay, highlight, dense, style}) => {
+  const frame = useAuthoredFrame();
+  const fps = AUTHOR_FPS;
   const enter = spring({
     frame: frame - delay,
     fps,
     config: {damping: 14, stiffness: 140, mass: 0.65},
   });
+
+  const iconBox = dense ? 56 : 72;
+  const iconSize = dense ? 30 : 38;
+  const titleSize = dense ? 30 : 38;
+  const lineSize = dense ? 24 : 32;
+  const pad = dense ? '22px 26px' : '30px 32px';
+  const gap = dense ? 10 : 14;
 
   return (
     <div
@@ -346,20 +486,21 @@ const InfoCard: React.FC<{
         transform: `translateY(${(1 - enter) * 28}px)`,
         border: `1.5px solid ${highlight ? color : colors.borderSoft}`,
         borderRadius: radius.lg,
-        padding: '30px 32px',
+        padding: pad,
         display: 'flex',
         flexDirection: 'column',
-        gap: 14,
+        gap,
         backgroundColor: colors.surface,
         boxShadow: highlight ? shadows.md : shadows.sm,
+        minHeight: 0,
         ...style,
       }}
     >
-      <div style={{display: 'flex', alignItems: 'center', gap: 16}}>
+      <div style={{display: 'flex', alignItems: 'center', gap: dense ? 12 : 16}}>
         <div
           style={{
-            width: 72,
-            height: 72,
+            width: iconBox,
+            height: iconBox,
             borderRadius: radius.md,
             backgroundColor: bg,
             display: 'flex',
@@ -368,13 +509,13 @@ const InfoCard: React.FC<{
             flexShrink: 0,
           }}
         >
-          <Icon size={38} color={color} strokeWidth={2} />
+          <Icon size={iconSize} color={color} strokeWidth={2} />
         </div>
         <span
           style={{
             fontFamily: fontBody,
             fontWeight: 700,
-            fontSize: 38,
+            fontSize: titleSize,
             color: colors.textPrimary,
           }}
         >
@@ -391,11 +532,11 @@ const InfoCard: React.FC<{
             key={line}
             style={{
               fontFamily: fontBody,
-              fontSize: 32,
+              fontSize: lineSize,
               fontWeight: 500,
               color: colors.textSecondary,
               opacity: lineIn,
-              lineHeight: 1.35,
+              lineHeight: 1.3,
             }}
           >
             {line}
@@ -406,53 +547,170 @@ const InfoCard: React.FC<{
   );
 };
 
-const TabGeral: React.FC<{delay: number}> = ({delay}) => (
-  <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, height: '100%'}}>
-    <InfoCard
-      icon={Nut}
-      title="Identidade"
-      bg={colors.successSoft}
-      color={colors.success}
-      delay={delay}
-      lines={[
-        'Nome · Pistache puro (pasta 100%)',
-        'Família · Oleaginosas',
-        'Tipo · Ingrediente simples',
-        'Origem · Pasta de pistache verde',
-        'Status · Ativo no workspace',
-      ]}
-    />
-    <InfoCard
-      icon={Snowflake}
-      title="Aplicações práticas"
-      bg={colors.primarySoft}
-      color={colors.primary}
-      delay={delay + 10}
-      lines={[
-        'Gelato premium de pistache',
-        'Base branca e mantecados',
-        'Overrun sugerido · 25–35%',
-        'Conservar pasta refrigerada',
-        'Sabor intenso · dose controlada',
-      ]}
-    />
-    <InfoCard
-      icon={Link2}
-      title="Compatibilidades"
-      bg="#ECFDF5"
-      color={colors.success}
-      delay={delay + 20}
-      highlight
-      lines={[
-        'Combina · dextrose e leite em pó',
-        'Sinergia · creme 35%',
-        'Substitui · pasta de avelã (com ajuste)',
-        'Evitar · excesso de água livre',
-      ]}
-      style={{gridColumn: '1 / -1'}}
-    />
-  </div>
-);
+const TabGeral: React.FC<{delay: number}> = ({delay}) => {
+  const frame = useAuthoredFrame();
+  const fps = AUTHOR_FPS;
+
+  const compat = [
+    {label: 'Combina', value: 'Dextrose + leite em pó', tint: colors.success},
+    {label: 'Sinergia', value: 'Creme 35%', tint: colors.primary},
+    {label: 'Substitui', value: 'Pasta de avelã (com ajuste)', tint: colors.warning},
+    {label: 'Evitar', value: 'Excesso de água livre', tint: colors.danger},
+  ];
+
+  const stripIn = spring({
+    frame: frame - delay - 14,
+    fps,
+    config: {damping: 14, stiffness: 140, mass: 0.65},
+  });
+
+  return (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gridTemplateRows: 'auto 1fr',
+        gap: 18,
+        height: '100%',
+        minHeight: 0,
+      }}
+    >
+      <InfoCard
+        icon={Nut}
+        title="Identidade"
+        bg={colors.successSoft}
+        color={colors.success}
+        delay={delay}
+        dense
+        lines={[
+          'Nome · Pistache puro (pasta 100%)',
+          'Família · Oleaginosas',
+          'Tipo · Ingrediente simples',
+          'Origem · Pasta de pistache verde',
+          'Status · Ativo no workspace',
+        ]}
+      />
+      <InfoCard
+        icon={Snowflake}
+        title="Aplicações práticas"
+        bg={colors.primarySoft}
+        color={colors.primary}
+        delay={delay + 8}
+        dense
+        lines={[
+          'Gelato premium de pistache',
+          'Base branca e mantecados',
+          'Overrun sugerido · 25–35%',
+          'Conservar pasta refrigerada',
+          'Sabor intenso · dose controlada',
+        ]}
+      />
+
+      <div
+        style={{
+          gridColumn: '1 / -1',
+          opacity: stripIn,
+          transform: `translateY(${(1 - stripIn) * 22}px)`,
+          borderRadius: radius.lg,
+          border: `1.5px solid ${colors.success}`,
+          backgroundColor: '#ECFDF5',
+          padding: '28px 32px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 20,
+          boxShadow: shadows.md,
+          minHeight: 0,
+        }}
+      >
+        <div style={{display: 'flex', alignItems: 'center', gap: 16}}>
+          <div
+            style={{
+              width: 64,
+              height: 64,
+              borderRadius: radius.md,
+              backgroundColor: colors.surface,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            <Link2 size={34} color={colors.success} strokeWidth={2} />
+          </div>
+          <span
+            style={{
+              fontFamily: fontBody,
+              fontWeight: 700,
+              fontSize: 36,
+              color: colors.textPrimary,
+            }}
+          >
+            Compatibilidades
+          </span>
+        </div>
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, 1fr)',
+            gap: 16,
+            flex: 1,
+            minHeight: 0,
+          }}
+        >
+          {compat.map((item, i) => {
+            const itemIn = interpolate(frame - delay - 18 - i * 3, [0, 7], [0, 1], {
+              extrapolateLeft: 'clamp',
+              extrapolateRight: 'clamp',
+            });
+            return (
+              <div
+                key={item.label}
+                style={{
+                  opacity: itemIn,
+                  transform: `translateY(${(1 - itemIn) * 10}px)`,
+                  backgroundColor: colors.surface,
+                  border: `1.5px solid ${item.tint}`,
+                  borderRadius: radius.lg,
+                  padding: '22px 20px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  gap: 10,
+                  boxShadow: shadows.sm,
+                }}
+              >
+                <span
+                  style={{
+                    fontFamily: fontBody,
+                    fontWeight: 700,
+                    fontSize: 18,
+                    letterSpacing: '0.07em',
+                    textTransform: 'uppercase',
+                    color: item.tint,
+                  }}
+                >
+                  {item.label}
+                </span>
+                <span
+                  style={{
+                    fontFamily: fontBody,
+                    fontWeight: 600,
+                    fontSize: 28,
+                    color: colors.textPrimary,
+                    lineHeight: 1.25,
+                  }}
+                >
+                  {item.value}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const TabComposicao: React.FC<{delay: number}> = ({delay}) => {
   const metrics = [
@@ -508,7 +766,7 @@ const TabComposicao: React.FC<{delay: number}> = ({delay}) => {
 };
 
 const TabNutricao: React.FC<{delay: number}> = ({delay}) => {
-  const frame = useCurrentFrame();
+  const frame = useAuthoredFrame();
   const rows = [
     {name: 'Valor energético', target: 562, unit: 'kcal', decimals: 0},
     {name: 'Carboidratos', target: 28, unit: 'g', decimals: 0},
@@ -589,8 +847,8 @@ const TabNutricao: React.FC<{delay: number}> = ({delay}) => {
 };
 
 const TabDosagem: React.FC<{delay: number}> = ({delay}) => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const fps = AUTHOR_FPS;
 
   const heroItems = [
     {
@@ -678,7 +936,7 @@ const TabDosagem: React.FC<{delay: number}> = ({delay}) => {
         })}
       </div>
 
-      <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, flex: 1}}>
+      <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, flex: 1, minHeight: 0}}>
         <InfoCard
           icon={ClipboardList}
           title="Limites e protocolo"
@@ -686,6 +944,7 @@ const TabDosagem: React.FC<{delay: number}> = ({delay}) => {
           color={colors.danger}
           delay={delay + 28}
           highlight
+          dense
           lines={[
             'Dose máxima · 12% da mistura',
             'Homogeneizar 2–3 min após inserção',
@@ -699,6 +958,7 @@ const TabDosagem: React.FC<{delay: number}> = ({delay}) => {
           bg="#F5F3FF"
           color={colors.pacViolet}
           delay={delay + 36}
+          dense
           lines={[
             'Eleva gordura e sólidos totais',
             'Contribui pouco para PAC/POD',
@@ -712,8 +972,8 @@ const TabDosagem: React.FC<{delay: number}> = ({delay}) => {
 };
 
 const TabFonte: React.FC<{delay: number}> = ({delay}) => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const fps = AUTHOR_FPS;
 
   const sources = [
     {name: 'Ficha do fabricante', detail: 'Pasta 100% pistache · lote 2026'},
@@ -847,40 +1107,40 @@ const BeatTab: React.FC<{
   <SceneBackground>
     <AbsoluteFill
       style={{
-        padding: '32px 56px 36px',
+        padding: '24px 56px 28px',
         flexDirection: 'column',
-        gap: 16,
+        gap: 12,
       }}
     >
-      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'}}>
+      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexShrink: 0}}>
         <div>
-          <Eyebrow delay={2} fontSize={34}>
+          <Eyebrow delay={2} fontSize={28}>
             Banco de Ingredientes
           </Eyebrow>
           <div
             style={{
               fontFamily: fontDisplay,
               fontWeight: 700,
-              fontSize: 52,
+              fontSize: 46,
               color: colors.primary,
-              marginTop: 8,
+              marginTop: 6,
             }}
           >
             Pistache puro
           </div>
-          <div style={{display: 'flex', gap: 12, marginTop: 12}}>
-            <Pill bg={colors.primarySoft} color={colors.primary} fontSize={20}>
+          <div style={{display: 'flex', gap: 12, marginTop: 10}}>
+            <Pill bg={colors.primarySoft} color={colors.primary} fontSize={18}>
               Ingrediente simples
             </Pill>
-            <Pill bg={colors.successSoft} color={colors.success} fontSize={20}>
+            <Pill bg={colors.successSoft} color={colors.success} fontSize={18}>
               Oleaginosa
             </Pill>
           </div>
         </div>
         <div
           style={{
-            width: 96,
-            height: 96,
+            width: 84,
+            height: 84,
             borderRadius: '50%',
             background: `linear-gradient(145deg, #D1FAE5 0%, #A7F3D0 55%, ${colors.warningSoft} 100%)`,
             border: `2.5px solid ${colors.success}`,
@@ -890,13 +1150,13 @@ const BeatTab: React.FC<{
             boxShadow: shadows.md,
           }}
         >
-          <Nut size={48} color={colors.success} strokeWidth={1.7} />
+          <Nut size={42} color={colors.success} strokeWidth={1.7} />
         </div>
       </div>
 
       <TabsBar active={active} tabIndex={tabIndex} duration={duration} />
 
-      <div style={{flex: 1, minHeight: 0}}>
+      <div style={{flex: 1, minHeight: 0, overflow: 'hidden'}}>
         <TabContent tab={active} delay={6} />
       </div>
     </AbsoluteFill>
@@ -904,32 +1164,35 @@ const BeatTab: React.FC<{
 );
 
 export const Scene03: React.FC = () => {
-  const fromGeral = BEAT.list;
-  const fromComposicao = fromGeral + BEAT.geral;
-  const fromNutricao = fromComposicao + BEAT.composicao;
-  const fromDosagem = fromNutricao + BEAT.nutricao;
-  const fromFonte = fromDosagem + BEAT.dosagem;
+  const fromGeral = T(BEAT.list);
+  const fromComposicao = fromGeral + T(BEAT.geral);
+  const fromNutricao = fromComposicao + T(BEAT.composicao);
+  const fromDosagem = fromNutricao + T(BEAT.nutricao);
+  const fromFonte = fromDosagem + T(BEAT.dosagem);
+  const fonteDur = Math.max(T(BEAT.fonte), DUR.scene03 - fromFonte);
 
   return (
-    <AbsoluteFill>
-      <Sequence from={0} durationInFrames={BEAT.list} name="Lista">
-        <BeatList />
-      </Sequence>
-      <Sequence from={fromGeral} durationInFrames={BEAT.geral} name="Geral">
-        <BeatTab active="Geral" tabIndex={0} duration={BEAT.geral} />
-      </Sequence>
-      <Sequence from={fromComposicao} durationInFrames={BEAT.composicao} name="Composição">
-        <BeatTab active="Composição" tabIndex={1} duration={BEAT.composicao} />
-      </Sequence>
-      <Sequence from={fromNutricao} durationInFrames={BEAT.nutricao} name="Tabela nutricional">
-        <BeatTab active="Tabela nutricional" tabIndex={2} duration={BEAT.nutricao} />
-      </Sequence>
-      <Sequence from={fromDosagem} durationInFrames={BEAT.dosagem} name="Dosagem">
-        <BeatTab active="Dosagem" tabIndex={3} duration={BEAT.dosagem} />
-      </Sequence>
-      <Sequence from={fromFonte} durationInFrames={BEAT.fonte} name="Fonte">
-        <BeatTab active="Fonte" tabIndex={4} duration={BEAT.fonte} />
-      </Sequence>
-    </AbsoluteFill>
+    <SceneFade fadeIn={22} enterFromScale={0.978}>
+      <AbsoluteFill>
+        <Sequence from={0} durationInFrames={T(BEAT.list)} name="Lista">
+          <BeatList />
+        </Sequence>
+        <Sequence from={fromGeral} durationInFrames={T(BEAT.geral)} name="Geral">
+          <BeatTab active="Geral" tabIndex={0} duration={BEAT.geral} />
+        </Sequence>
+        <Sequence from={fromComposicao} durationInFrames={T(BEAT.composicao)} name="Composição">
+          <BeatTab active="Composição" tabIndex={1} duration={BEAT.composicao} />
+        </Sequence>
+        <Sequence from={fromNutricao} durationInFrames={T(BEAT.nutricao)} name="Tabela nutricional">
+          <BeatTab active="Tabela nutricional" tabIndex={2} duration={BEAT.nutricao} />
+        </Sequence>
+        <Sequence from={fromDosagem} durationInFrames={T(BEAT.dosagem)} name="Dosagem">
+          <BeatTab active="Dosagem" tabIndex={3} duration={BEAT.dosagem} />
+        </Sequence>
+        <Sequence from={fromFonte} durationInFrames={fonteDur} name="Fonte">
+          <BeatTab active="Fonte" tabIndex={4} duration={BEAT.fonte} />
+        </Sequence>
+      </AbsoluteFill>
+    </SceneFade>
   );
 };

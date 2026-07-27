@@ -1,0 +1,261 @@
+{
+  "language": "pt",
+  "duration": 242.6775625,
+  "segments": [
+    {
+      "start": 0.0,
+      "end": 5.76,
+      "text": "Desenvolver uma receita profissional exige conhecimento, precisão e controle."
+    },
+    {
+      "start": 5.76,
+      "end": 8.8,
+      "text": "Mas no mundo do gelato artesanal e industrial,"
+    },
+    {
+      "start": 8.8,
+      "end": 13.44,
+      "text": "muitas produções ainda trabalham com informações espalhadas entre planilhas,"
+    },
+    {
+      "start": 13.44,
+      "end": 17.44,
+      "text": "fichas técnicas, anotações e diferentes sistemas."
+    },
+    {
+      "start": 17.44,
+      "end": 21.04,
+      "text": "A Iconi reúne formulação, balanceamento,"
+    },
+    {
+      "start": 21.04,
+      "end": 26.28,
+      "text": "conhecimento técnico e acesso a ingredientes em uma única plataforma desenvolvida"
+    },
+    {
+      "start": 26.28,
+      "end": 29.48,
+      "text": "para o mundo do gelato artesanal e industrial."
+    },
+    {
+      "start": 29.48,
+      "end": 33.88,
+      "text": "No Banco de Ingredientes, cada item reúne informações nutricionais,"
+    },
+    {
+      "start": 33.88,
+      "end": 41.28,
+      "text": "propriedades técnicas, dosagens, aplicações, compatibilidades e possibilidades de substituição,"
+    },
+    {
+      "start": 41.28,
+      "end": 46.68,
+      "text": "tudo organizado para facilitar a formulação e apoiar decisões mais seguras."
+    },
+    {
+      "start": 46.68,
+      "end": 50.28,
+      "text": "Os dados são documentados a partir de fontes reconhecidas,"
+    },
+    {
+      "start": 50.28,
+      "end": 53.08,
+      "text": "como o United States Department of Agriculture,"
+    },
+    {
+      "start": 53.08,
+      "end": 55.88,
+      "text": "a tabela brasileira de composição de alimentos,"
+    },
+    {
+      "start": 55.88,
+      "end": 58.08,
+      "text": "a tabela de composição de alimentos"
+    },
+    {
+      "start": 58.08,
+      "end": 60.88,
+      "text": "e a documentação técnica dos fabricantes."
+    },
+    {
+      "start": 60.88,
+      "end": 65.88,
+      "text": "Isso proporciona mais confiabilidade, coerência e rastreabilidade aos cálculos."
+    },
+    {
+      "start": 65.88,
+      "end": 70.08,
+      "text": "Ao criar uma receita, o usuário pode configurá-la do jeito que quiser,"
+    },
+    {
+      "start": 70.08,
+      "end": 73.08,
+      "text": "utilizando os ingredientes certificados da Iconi"
+    },
+    {
+      "start": 73.08,
+      "end": 75.68,
+      "text": "ou os ingredientes que ele mesmo cadastrou,"
+    },
+    {
+      "start": 75.68,
+      "end": 80.68,
+      "text": "vinculando fornecedores para acompanhar o custo da receita e definindo o alvo da produção."
+    },
+    {
+      "start": 80.68,
+      "end": 86.08,
+      "text": "A partir daí, a Iconi calcula automaticamente seus principais parâmetros técnicos"
+    },
+    {
+      "start": 86.08,
+      "end": 87.88,
+      "text": "antes de iniciar a produção."
+    },
+    {
+      "start": 87.88,
+      "end": 90.68,
+      "text": "Um painel completo mostra como está o gelato."
+    },
+    {
+      "start": 90.68,
+      "end": 95.08,
+      "text": "Água, açúcares, gorduras, proteínas, sólidos totais,"
+    },
+    {
+      "start": 95.08,
+      "end": 101.28,
+      "text": "poder anticrioscópico, poder educorante, overrun, cristalização, cremosidade,"
+    },
+    {
+      "start": 101.28,
+      "end": 104.88,
+      "text": "comportamento em diferentes temperaturas e índice glicêmico."
+    },
+    {
+      "start": 104.88,
+      "end": 110.48,
+      "text": "Cada item com sua interpretação indicando se está na faixa ideal ou se merece atenção."
+    },
+    {
+      "start": 110.48,
+      "end": 116.48,
+      "text": "E na aba explicação, a Iconi traduz tudo isso em um texto simples e fácil de entender,"
+    },
+    {
+      "start": 116.48,
+      "end": 119.08,
+      "text": "mesmo para quem não domina os termos técnicos."
+    },
+    {
+      "start": 119.08,
+      "end": 124.08,
+      "text": "Na aba Valores Nutricionais, cada receita ganha sua tabela nutricional completa,"
+    },
+    {
+      "start": 124.08,
+      "end": 128.88,
+      "text": "com todos os valores calculados automaticamente a partir dos ingredientes."
+    },
+    {
+      "start": 128.88,
+      "end": 134.48,
+      "text": "E direto dessa mesma tela, a Iconi já gera as etiqueta e afixa a técnica da receita,"
+    },
+    {
+      "start": 134.48,
+      "end": 139.28,
+      "text": "sem retrabalho, sem digitação manual, sempre coerente com a formulação."
+    },
+    {
+      "start": 139.28,
+      "end": 143.48,
+      "text": "E a Iconi não se limita para indicar que uma receita está desequilibrada."
+    },
+    {
+      "start": 143.48,
+      "end": 148.48,
+      "text": "A correção automática analisa a formulação e apresenta uma nova proposta,"
+    },
+    {
+      "start": 148.48,
+      "end": 155.48,
+      "text": "buscando atingir os objetivos técnicos e preservar, sempre que possível, a identidade da receita original."
+    },
+    {
+      "start": 155.48,
+      "end": 162.48,
+      "text": "Com o módulo de neutros, é possível desenvolver combinações personalizadas de estabilizantes e emocionantes,"
+    },
+    {
+      "start": 162.48,
+      "end": 167.48,
+      "text": "controlar as proporções e criar um blend adequado às necessidades de cada formulação."
+    },
+    {
+      "start": 167.48,
+      "end": 174.48,
+      "text": "A maioria das empresas do setor de sorvetes e gelatos, trabalha com ingredientes produzidos por empresas especializadas,"
+    },
+    {
+      "start": 174.48,
+      "end": 179.48,
+      "text": "mas na maioria das vezes não tem acesso a formulação completa desses produtos."
+    },
+    {
+      "start": 179.48,
+      "end": 184.48,
+      "text": "Isso dificulta balancear a receita corretamente e também emitir uma etiqueta confiável."
+    },
+    {
+      "start": 184.48,
+      "end": 188.48,
+      "text": "A engenharia reversa da Iconi resolve essa dificuldade."
+    },
+    {
+      "start": 188.48,
+      "end": 195.48,
+      "text": "A partir das informações disponíveis no rótulo, a plataforma reconstrói de forma coerente uma composição estimada,"
+    },
+    {
+      "start": 195.48,
+      "end": 203.48,
+      "text": "para que o profissional entenda melhor o que está utilizando e consiga balancear sua receita e gerar uma etiqueta confiável."
+    },
+    {
+      "start": 203.48,
+      "end": 210.48,
+      "text": "Esse trabalho não é feito por inteligência artificial, é resultado da ciência e da experiência técnica da Iconi."
+    },
+    {
+      "start": 210.48,
+      "end": 215.48,
+      "text": "Depois de formular, o usuário pode consultar fornecedores e produtos disponíveis"
+    },
+    {
+      "start": 215.48,
+      "end": 221.48,
+      "text": "e adquirir diretamente pela plataforma os ingredientes necessários para produzir sua receita."
+    },
+    {
+      "start": 221.48,
+      "end": 228.48,
+      "text": "A Iconi transforma informações técnicas em decisões práticas, mais organização, mais controle e mais segurança"
+    },
+    {
+      "start": 228.48,
+      "end": 232.48,
+      "text": "para desenvolver produtos e padronizar resultados."
+    },
+    {
+      "start": 232.48,
+      "end": 237.48,
+      "text": "Iconi, uma nova forma de formular, corrigir e criar gelato profissional."
+    },
+    {
+      "start": 237.48,
+      "end": 242.48,
+      "text": "No lançamento dia 15 de agosto de 2026, entre no site e saiba mais."
+    }
+  ]
+}

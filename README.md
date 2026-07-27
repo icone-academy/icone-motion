@@ -2,9 +2,10 @@
 
 Projeto [Remotion](https://www.remotion.dev/) (React + TypeScript) do vídeo motion graphics institucional da **ICone — Inteligência para Gelato**, plataforma SaaS de ERP para gelaterias e sorveterias profissionais.
 
-- **Resolução:** 1920×1080 · **FPS:** 30 · **Duração total (Main):** 4:15 (7650 frames) — sincronizado ao VO
+- **Resolução:** 1920×1080 · **FPS:** 60 · **Duração total (Main):** ~4:02.7 (sincronizado ao VO em `public/audio/vo.mp3`)
 - **Identidade visual:** design system real do ICone Academy (taupe/cream, Oswald + Inter, sombras warm-brown, ícones Lucide outline)
 - **Legibilidade mobile:** tokens `type.*` em `src/theme.ts` — tipografia/CTA/pills ampliados sem scale global. Cenas 3 e 5 usam beats fullscreen.
+- **Timing:** cortes do VO em `src/timeline.ts` (`VO_CUTS`). Animações internas usam `useAuthoredFrame()` (base 30fps) para manter o ritmo e ganhar suavidade a 60fps.
 
 ## Como rodar
 
@@ -16,12 +17,35 @@ npx remotion studio
 ## Como renderizar
 
 ```bash
-# Vídeo completo
+# Garante FFmpeg funcional (Windows) e renderiza o vídeo completo
 npm run render
 # → out/icone-institucional.mp4
 
-# Uma cena isolada (ex.: Cena 6)
-npx remotion render Scene06 out/cena06.mp4
+# Uma cena isolada
+npx remotion render Scene06 out/cena06.mp4 --concurrency=4
+```
+
+### Windows: erro `kill EBADF` / encode em 0%
+
+Causa típica: o `ffmpeg.exe` empacotado do Remotion crasha neste Windows; o Node 24 piora o cleanup (`kill EBADF`). O FFmpeg estático (BtbN GPL) não tem `libfdk_aac` — `remotion.config.ts` usa `mp3` (`libmp3lame`) por isso.
+
+O projeto já inclui `scripts/ensure-ffmpeg.ps1`, que:
+
+1. baixa um FFmpeg estático (BtbN) em `bin/ffmpeg/`
+2. substitui `ffmpeg.exe` / `ffprobe.exe` dentro de `@remotion/compositor-win32-x64-msvc`
+
+Rode se precisar:
+
+```powershell
+npm run fix:ffmpeg
+```
+
+Recomendado: **Node 20 ou 22 LTS** (não 24). O arquivo `.nvmrc` aponta para 22.
+
+```powershell
+nvm install 22
+nvm use 22
+npm run render
 ```
 
 ## Compositions registradas

@@ -1,11 +1,13 @@
 import React from 'react';
-import {interpolate, spring, useCurrentFrame, useVideoConfig} from 'remotion';
+import {interpolate, spring} from 'remotion';
 import {colors} from '../theme';
 import {fontBody} from '../fonts';
+import {AUTHOR_FPS, useAuthoredFrame} from '../timeline';
 
 /**
  * Barra horizontal animada (métricas de ingredientes: água,
  * gordura, açúcares, PAC, POD — cores do §1.6 do design system).
+ * delay em frames de autoria (30fps).
  */
 export const GaugeBar: React.FC<{
   label: string;
@@ -31,16 +33,15 @@ export const GaugeBar: React.FC<{
   fontSize = 26,
   barHeight = 16,
 }) => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const frame = useAuthoredFrame();
 
   const fill = spring({
     frame: frame - delay,
-    fps,
-    config: {damping: 200, stiffness: 90},
+    fps: AUTHOR_FPS,
+    config: {damping: 24, stiffness: 85, mass: 0.9},
   });
 
-  const opacity = interpolate(frame - delay, [0, 10], [0, 1], {
+  const opacity = interpolate(frame - delay, [0, 8], [0, 1], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   });

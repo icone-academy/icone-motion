@@ -4,9 +4,9 @@ import {
   interpolate,
   Sequence,
   spring,
-  useCurrentFrame,
   useVideoConfig,
 } from 'remotion';
+import {AUTHOR_FPS, T, useAuthoredFrame} from '../timeline';
 import {ArrowRight, ClipboardList, ShieldCheck, Tag} from 'lucide-react';
 import {SceneBackground} from '../components/SceneBackground';
 import {Eyebrow} from '../components/Eyebrow';
@@ -54,8 +54,8 @@ const IG_ZONES: GaugeZone[] = [
 const cellBorder = '1.5px solid #1a1a1a';
 
 const AnvisaNutritionTable: React.FC = () => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const fps = AUTHOR_FPS;
 
   const enter = spring({
     frame: frame - 8,
@@ -281,8 +281,8 @@ const AnvisaNutritionTable: React.FC = () => {
 };
 
 const GlycemicFocus: React.FC = () => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const fps = AUTHOR_FPS;
 
   const enter = spring({
     frame: frame - 4,
@@ -337,8 +337,8 @@ const GlycemicFocus: React.FC = () => {
 };
 
 export const SceneNutritionalTable: React.FC = () => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const fps = AUTHOR_FPS;
 
   const flowIn = spring({
     frame: frame - FLOW_AT,
@@ -374,7 +374,7 @@ export const SceneNutritionalTable: React.FC = () => {
         />
       </AbsoluteFill>
 
-      <Sequence from={0} durationInFrames={TABLE_DUR} name="Tabela ANVISA">
+      <Sequence from={0} durationInFrames={T(TABLE_DUR)} name="Tabela ANVISA">
         <AbsoluteFill
           style={{
             alignItems: 'center',
@@ -386,7 +386,7 @@ export const SceneNutritionalTable: React.FC = () => {
         </AbsoluteFill>
       </Sequence>
 
-      <Sequence from={TABLE_DUR} durationInFrames={IG_DUR + 200} name="Índice glicêmico">
+      <Sequence from={T(TABLE_DUR)} durationInFrames={T(IG_DUR + 200)} name="Índice glicêmico">
         <AbsoluteFill
           style={{
             alignItems: 'center',

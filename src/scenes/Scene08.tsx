@@ -3,9 +3,9 @@ import {
   AbsoluteFill,
   interpolate,
   spring,
-  useCurrentFrame,
   useVideoConfig,
 } from 'remotion';
+import {AUTHOR_FPS, T, useAuthoredFrame} from '../timeline';
 import {
   Calculator,
   CheckCircle2,
@@ -40,8 +40,8 @@ const NODE_Y = 480;
 const nodeDelay = (i: number) => 20 + i * 55;
 
 export const Scene08: React.FC = () => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const fps = AUTHOR_FPS;
 
   const flowStart = nodeDelay(NODES.length - 1) + 30;
   const pulseProgress =

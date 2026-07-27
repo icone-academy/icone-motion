@@ -1,9 +1,11 @@
 import React from 'react';
-import {interpolate, spring, useCurrentFrame, useVideoConfig} from 'remotion';
+import {interpolate, spring} from 'remotion';
+import {AUTHOR_FPS, useAuthoredFrame} from '../timeline';
 
 /**
  * Wrapper de entrada: fade + deslize suave com spring
  * (curva próxima do --ease-standard do app).
+ * Delays em frames de autoria (30fps).
  */
 export const FadeIn: React.FC<{
   children: React.ReactNode;
@@ -12,16 +14,15 @@ export const FadeIn: React.FC<{
   distance?: number;
   style?: React.CSSProperties;
 }> = ({children, delay = 0, from = 'bottom', distance = 28, style}) => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const frame = useAuthoredFrame();
 
   const progress = spring({
     frame: frame - delay,
-    fps,
-    config: {damping: 200, stiffness: 120},
+    fps: AUTHOR_FPS,
+    config: {damping: 22, stiffness: 110, mass: 0.85},
   });
 
-  const opacity = interpolate(frame - delay, [0, 12], [0, 1], {
+  const opacity = interpolate(frame - delay, [0, 10], [0, 1], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   });

@@ -3,9 +3,9 @@ import {
   AbsoluteFill,
   interpolate,
   spring,
-  useCurrentFrame,
   useVideoConfig,
 } from 'remotion';
+import {AUTHOR_FPS, T, useAuthoredFrame} from '../timeline';
 import {
   BookOpen,
   Calculator,
@@ -143,8 +143,8 @@ const Pillar: React.FC<(typeof PILLARS)[number] & {index: number; fadeOut: numbe
   index,
   fadeOut,
 }) => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const fps = AUTHOR_FPS;
 
   const enter = spring({
     frame: frame - 8 - index * 12,
@@ -197,7 +197,7 @@ const Pillar: React.FC<(typeof PILLARS)[number] & {index: number; fadeOut: numbe
 
 /** Mini planilha com células “vivas”. */
 const SpreadsheetCard: React.FC = () => {
-  const frame = useCurrentFrame();
+  const frame = useAuthoredFrame();
   const cells = [
     ['Ingrediente', 'g', '%'],
     ['Leite', '520', '52'],
@@ -358,7 +358,7 @@ const NotesCard: React.FC = () => (
 
 /** Calculadora / balanço manual. */
 const CalculatorCard: React.FC = () => {
-  const frame = useCurrentFrame();
+  const frame = useAuthoredFrame();
   const flash = 0.5 + 0.5 * Math.sin(frame / 8);
 
   return (
@@ -549,8 +549,8 @@ const DocBody: React.FC<{doc: (typeof DOCS)[number]}> = ({doc}) => {
 
 /** Documento voando do centro para a periferia. */
 const FlyingDoc: React.FC<{doc: (typeof DOCS)[number]; index: number}> = ({doc, index}) => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const fps = AUTHOR_FPS;
 
   const delay = CHAOS_START + doc.delay;
   const fly = spring({
@@ -628,7 +628,7 @@ const FlyingDoc: React.FC<{doc: (typeof DOCS)[number]; index: number}> = ({doc, 
 
 /** Linhas quebradas do centro até cada documento. */
 const BrokenLinks: React.FC = () => {
-  const frame = useCurrentFrame();
+  const frame = useAuthoredFrame();
 
   return (
     <svg
@@ -683,8 +683,8 @@ const BrokenLinks: React.FC = () => {
 
 /** Receita no centro — começa ordenada e “estilhaça”. */
 const RecipeCore: React.FC = () => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const fps = AUTHOR_FPS;
 
   const enter = spring({
     frame: frame - RECIPE_IN,
@@ -806,8 +806,8 @@ const RecipeCore: React.FC = () => {
 };
 
 export const Scene01: React.FC = () => {
-  const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const frame = useAuthoredFrame();
+  const fps = AUTHOR_FPS;
 
   const idealFade = interpolate(frame, [IDEAL_OUT - 16, IDEAL_OUT + 10], [0, 1], {
     extrapolateLeft: 'clamp',

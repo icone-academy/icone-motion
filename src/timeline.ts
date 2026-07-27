@@ -1,55 +1,93 @@
-export const FPS = 30;
+import {useCurrentFrame, useVideoConfig} from 'remotion';
+
+/**
+ * Timeline + helpers de tempo.
+ *
+ * Animações internas foram escritas assumindo 30fps (AUTHOR_FPS).
+ * O vídeo roda a 60fps para motion mais suave: useAuthoredFrame()
+ * mantém o timing de parede das animações e dobra as amostras da curva.
+ */
+
+export const FPS = 60;
+export const AUTHOR_FPS = 30;
 export const WIDTH = 1920;
 export const HEIGHT = 1080;
 
+/** Duração real do VO (ffprobe). */
+export const AUDIO_DURATION_SEC = 242.6775;
+export const AUDIO_FILE = 'audio/vo.mp3';
+
+/** Converte frames escritos a 30fps → frames reais a 60fps. */
+export const T = (framesAt30: number) =>
+  Math.round(framesAt30 * (FPS / AUTHOR_FPS));
+
+/** Segundos → frames reais. */
+export const sec = (seconds: number) => Math.round(seconds * FPS);
+
 /**
- * Durações alinhadas ao VO (timestamps do áudio):
- * 0:00–0:29  S01+S02   desafio + plataforma ICone
- * 0:29–0:46  S03       banco de ingredientes
- * 0:46–1:10  S04       fontes (USDA/TBCA/TACO/fabricantes)
- * 1:10–2:08  S05       receita (composição → gauges → … → nutrição)
- * 2:08–2:35  S08+S06   etiqueta/ficha + correção automática
- * 2:35–2:50  S07       neutros
- * 2:50–3:30  Reversa   problema → composição (ciência ICone)
- * 3:30–3:57  S09+S10   compras + montagem / fechamento
- * 3:57–4:15  S11       lançamento 15/08/2026
- * → total 4:15 (7650 frames)
- *
- * SceneNutritionalTable fica fora do Main (export isolado) —
- * o VO cobre nutrição/IG dentro da S05.
+ * Frame “de autoria” (escala 30fps). Use no lugar de useCurrentFrame()
+ * dentro das cenas/componentes cujos delays foram escritos a 30fps.
  */
-export const DUR = {
-  scene01: 420, // 0:00–0:14
-  scene02: 450, // 0:14–0:29
-  scene03: 510, // 0:29–0:46
-  scene04: 720, // 0:46–1:10
-  scene05: 1740, // 1:10–2:08
-  scene08: 360, // 2:08–2:20 etiquetas/ficha
-  scene06: 450, // 2:20–2:35 correção
-  scene07: 450, // 2:35–2:50 neutros
-  sceneReverseEngineering: 1200, // 2:50–3:30
-  scene09: 390, // 3:30–3:43
-  scene10: 420, // 3:43–3:57
-  scene11: 540, // 3:57–4:15
-  /** Export isolado — não entra no Main sincronizado ao VO */
-  sceneNutritionalTable: 600,
+export const useAuthoredFrame = (): number => {
+  const frame = useCurrentFrame();
+  const {fps} = useVideoConfig();
+  return frame * (AUTHOR_FPS / fps);
+};
+
+/**
+ * Cortes sincronizados ao VO (Whisper + revisão manual).
+ * Intervalos em segundos [start, end).
+ */
+export const VO_CUTS = {
+  scene01: [0.0, 17.44], // desafio / informações espalhadas
+  scene02: [17.44, 29.48], // plataforma ICone
+  scene03: [29.48, 46.68], // banco de ingredientes
+  scene04: [46.68, 65.88], // fontes (USDA/TBCA/TACO/fabricantes)
+  scene05: [65.88, 139.28], // receita → nutrição → etiqueta/ficha (mesma tela)
+  scene08: [128.88, 139.28], // export isolado (VO coberto pela scene05)
+  scene06: [139.28, 155.48], // correção automática
+  scene07: [155.48, 167.48], // neutros
+  sceneReverseEngineering: [167.48, 210.48], // engenharia reversa
+  scene09: [210.48, 221.48], // compras / fornecedores
+  scene10: [221.48, 232.48], // montagem / fechamento
+  scene11: [232.48, AUDIO_DURATION_SEC], // CTA lançamento 15/08/2026
 } as const;
 
-/** Soma só das cenas do Main (sem tabela nutricional isolada). */
+export type MainSceneKey = keyof typeof VO_CUTS;
+
+const durationFromCut = ([start, end]: readonly [number, number]) =>
+  Math.max(1, sec(end) - sec(start));
+
+export const DUR = {
+  scene01: durationFromCut(VO_CUTS.scene01),
+  scene02: durationFromCut(VO_CUTS.scene02),
+  scene03: durationFromCut(VO_CUTS.scene03),
+  scene04: durationFromCut(VO_CUTS.scene04),
+  scene05: durationFromCut(VO_CUTS.scene05),
+  scene08: durationFromCut(VO_CUTS.scene08),
+  scene06: durationFromCut(VO_CUTS.scene06),
+  scene07: durationFromCut(VO_CUTS.scene07),
+  sceneReverseEngineering: durationFromCut(VO_CUTS.sceneReverseEngineering),
+  scene09: durationFromCut(VO_CUTS.scene09),
+  scene10: durationFromCut(VO_CUTS.scene10),
+  scene11: durationFromCut(VO_CUTS.scene11),
+  /** Export isolado — não entra no Main */
+  sceneNutritionalTable: sec(20),
+} as const;
+
 export const MAIN_SCENE_KEYS = [
   'scene01',
   'scene02',
   'scene03',
   'scene04',
   'scene05',
-  'scene08',
   'scene06',
   'scene07',
   'sceneReverseEngineering',
   'scene09',
   'scene10',
   'scene11',
-] as const;
+] as const satisfies readonly MainSceneKey[];
 
 export const TOTAL_DURATION = MAIN_SCENE_KEYS.reduce(
   (sum, key) => sum + DUR[key],
