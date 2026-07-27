@@ -10,7 +10,7 @@ import {
 import {colors} from '../theme';
 
 /**
- * Reveal do logotipo Ícone: halo suave + scale spring.
+ * Reveal do logotipo ICone: halo suave + scale spring.
  * variant "light" = traço escuro (fundos claros/cream);
  * variant "dark" = traço claro (fundos taupe/escuros).
  */

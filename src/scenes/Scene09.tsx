@@ -15,16 +15,18 @@ import {colors, radius, shadows} from '../theme';
 import {fontBody, fontDisplay} from '../fonts';
 
 /**
- * Cena 9 (2:25–2:42) — Compra integrada: ingrediente "sai" da
+ * Cena 9 — Compra integrada: ingrediente em falta "sai" da
  * receita e voa para o carrinho; card de fornecedor/preço aparece.
  */
 
-const FLY_START = 110;
-const FLY_END = 160;
-const SUPPLIER_IN = 200;
+const FLY_START = 70;
+const FLY_END = 115;
+const SUPPLIER_IN = 145;
 
-const RECIPE_POS = {x: 380, y: 540};
-const CART_POS = {x: 1480, y: 470};
+/** Origem aproximada da linha "Pistache puro" no card da receita. */
+const RECIPE_POS = {x: 420, y: 520};
+/** Destino do chip (centro do carrinho). */
+const CART_POS = {x: 1480, y: 360};
 
 const INGREDIENTS = [
   {name: 'Leite integral', qty: '520 g', inStock: true},
@@ -40,7 +42,6 @@ export const Scene09: React.FC = () => {
   const recipeIn = spring({frame: frame - 10, fps, config: {damping: 200, stiffness: 90}});
   const cartIn = spring({frame: frame - 40, fps, config: {damping: 13, stiffness: 120, mass: 0.8}});
 
-  // Voo do chip: arco parabólico da receita até o carrinho
   const flight = interpolate(frame, [FLY_START, FLY_END], [0, 1], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
@@ -53,14 +54,12 @@ export const Scene09: React.FC = () => {
     Math.sin(eased * Math.PI) * 220;
   const chipVisible = frame >= FLY_START && frame <= FLY_END + 4;
 
-  // Carrinho "pula" quando o chip chega
   const cartBounce = spring({
     frame: frame - FLY_END,
     fps,
     config: {damping: 8, stiffness: 200, mass: 0.6},
   });
-  const cartScale =
-    frame >= FLY_END ? 1 + Math.sin(cartBounce * Math.PI) * 0.12 : 1;
+  const cartScale = frame >= FLY_END ? 1 + Math.sin(cartBounce * Math.PI) * 0.12 : 1;
 
   const badgePop = spring({
     frame: frame - FLY_END - 4,
@@ -76,8 +75,10 @@ export const Scene09: React.FC = () => {
 
   return (
     <SceneBackground>
-      <AbsoluteFill style={{alignItems: 'center', paddingTop: 56, gap: 12}}>
-        <Eyebrow delay={2}>Fornecedores e compras</Eyebrow>
+      <AbsoluteFill style={{alignItems: 'center', paddingTop: 40, gap: 14, zIndex: 5}}>
+        <Eyebrow delay={2} fontSize={38}>
+          Fornecedores e compras
+        </Eyebrow>
         <AnimatedText
           text="Adquira os ingredientes da receita diretamente pela plataforma"
           delay={12}
@@ -85,8 +86,10 @@ export const Scene09: React.FC = () => {
           style={{
             fontFamily: fontBody,
             fontWeight: 500,
-            fontSize: 30,
+            fontSize: 34,
             color: colors.textMuted,
+            maxWidth: 1600,
+            textAlign: 'center',
           }}
         />
       </AbsoluteFill>
@@ -95,36 +98,49 @@ export const Scene09: React.FC = () => {
       <div
         style={{
           position: 'absolute',
-          left: RECIPE_POS.x - 240,
-          top: RECIPE_POS.y - 200,
-          width: 520,
+          left: 90,
+          top: 210,
+          width: 700,
           opacity: recipeIn,
           transform: `translateY(${(1 - recipeIn) * 50}px)`,
           borderRadius: radius.shell,
           backgroundColor: colors.surface,
           border: `1px solid ${colors.border}`,
           boxShadow: shadows.shell,
-          padding: 32,
+          padding: '36px 40px',
         }}
       >
-        <span
-          style={{
-            fontFamily: fontBody,
-            fontWeight: 700,
-            fontSize: 28,
-            color: colors.textPrimary,
-          }}
-        >
-          Gelato de Pistache
-        </span>
-        <div style={{marginTop: 20, display: 'flex', flexDirection: 'column', gap: 10}}>
+        <div style={{display: 'flex', alignItems: 'baseline', justifyContent: 'space-between'}}>
+          <span
+            style={{
+              fontFamily: fontBody,
+              fontWeight: 700,
+              fontSize: 36,
+              color: colors.textPrimary,
+            }}
+          >
+            Gelato de Pistache
+          </span>
+          <span
+            style={{
+              fontFamily: fontBody,
+              fontWeight: 600,
+              fontSize: 18,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: colors.textMuted,
+            }}
+          >
+            Receita
+          </span>
+        </div>
+        <div style={{marginTop: 24, display: 'flex', flexDirection: 'column', gap: 14}}>
           {INGREDIENTS.map((ing, i) => {
             const rowIn = interpolate(frame - 30 - i * 8, [0, 10], [0, 1], {
               extrapolateLeft: 'clamp',
               extrapolateRight: 'clamp',
             });
             const isMissing = !ing.inStock;
-            // O item "faltante" some do card durante o voo
             const flyOut = isMissing
               ? interpolate(frame, [FLY_START - 8, FLY_START + 4], [1, 0.35], {
                   extrapolateLeft: 'clamp',
@@ -139,16 +155,22 @@ export const Scene09: React.FC = () => {
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  padding: '13px 18px',
+                  padding: '18px 24px',
                   borderRadius: radius.md,
                   backgroundColor: isMissing ? colors.dangerSoft : colors.surfaceMuted,
-                  border: `1px solid ${isMissing ? colors.danger : colors.borderSoft}`,
+                  border: `1.5px solid ${isMissing ? colors.danger : colors.borderSoft}`,
                   fontFamily: fontBody,
-                  fontSize: 21,
+                  fontSize: 28,
                 }}
               >
                 <span style={{fontWeight: 600, color: colors.textPrimary}}>{ing.name}</span>
-                <span style={{color: isMissing ? colors.danger : colors.textMuted, fontWeight: 600}}>
+                <span
+                  style={{
+                    color: isMissing ? colors.danger : colors.textMuted,
+                    fontWeight: 700,
+                    fontSize: isMissing ? 26 : 28,
+                  }}
+                >
                   {isMissing ? 'em falta' : ing.qty}
                 </span>
               </div>
@@ -167,20 +189,20 @@ export const Scene09: React.FC = () => {
             transform: `translate(-50%, -50%) rotate(${eased * 14}deg)`,
             display: 'flex',
             alignItems: 'center',
-            gap: 10,
+            gap: 14,
             backgroundColor: colors.surface,
-            border: `2px solid ${colors.primary}`,
-            borderRadius: 26,
+            border: `2.5px solid ${colors.primary}`,
+            borderRadius: 32,
             boxShadow: shadows.shell,
-            padding: '12px 24px',
+            padding: '16px 30px',
             fontFamily: fontBody,
             fontWeight: 700,
-            fontSize: 23,
+            fontSize: 32,
             color: colors.textPrimary,
             zIndex: 10,
           }}
         >
-          <Package size={24} color={colors.primary} />
+          <Package size={30} color={colors.primary} />
           Pistache puro · 1 kg
         </div>
       ) : null}
@@ -189,35 +211,36 @@ export const Scene09: React.FC = () => {
       <div
         style={{
           position: 'absolute',
-          left: CART_POS.x - 110,
-          top: CART_POS.y - 110,
+          left: CART_POS.x - 130,
+          top: CART_POS.y - 130,
           opacity: cartIn,
           transform: `scale(${cartIn * cartScale})`,
+          zIndex: 6,
         }}
       >
         <div
           style={{
             position: 'relative',
-            width: 220,
-            height: 220,
+            width: 260,
+            height: 260,
             borderRadius: '50%',
             backgroundColor: colors.primarySoft,
-            border: `2px solid ${colors.border}`,
+            border: `2.5px solid ${colors.border}`,
             boxShadow: shadows.shell,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <ShoppingCart size={96} color={colors.primary} strokeWidth={1.7} />
+          <ShoppingCart size={112} color={colors.primary} strokeWidth={1.7} />
           <div
             style={{
               position: 'absolute',
-              top: 8,
-              right: 8,
+              top: 6,
+              right: 6,
               transform: `scale(${badgePop})`,
-              width: 56,
-              height: 56,
+              width: 68,
+              height: 68,
               borderRadius: '50%',
               backgroundColor: colors.danger,
               display: 'flex',
@@ -225,7 +248,7 @@ export const Scene09: React.FC = () => {
               justifyContent: 'center',
               fontFamily: fontBody,
               fontWeight: 700,
-              fontSize: 28,
+              fontSize: 32,
               color: colors.textInverse,
               boxShadow: shadows.md,
             }}
@@ -239,53 +262,54 @@ export const Scene09: React.FC = () => {
       <div
         style={{
           position: 'absolute',
-          left: CART_POS.x - 260,
-          top: CART_POS.y + 150,
-          width: 520,
+          left: 1040,
+          top: 560,
+          width: 780,
           opacity: supplierIn,
           transform: `translateY(${(1 - supplierIn) * 44}px)`,
-          borderRadius: radius.lg,
+          borderRadius: radius.shell,
           backgroundColor: colors.surface,
           border: `1px solid ${colors.border}`,
           boxShadow: shadows.shell,
-          padding: 28,
+          padding: '32px 36px',
           display: 'flex',
           flexDirection: 'column',
-          gap: 16,
+          gap: 22,
         }}
       >
-        <div style={{display: 'flex', alignItems: 'center', gap: 16}}>
+        <div style={{display: 'flex', alignItems: 'center', gap: 20}}>
           <div
             style={{
-              width: 64,
-              height: 64,
+              width: 80,
+              height: 80,
               borderRadius: radius.md,
               backgroundColor: colors.primarySoft,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              flexShrink: 0,
             }}
           >
-            <Building2 size={32} color={colors.primary} strokeWidth={1.9} />
+            <Building2 size={40} color={colors.primary} strokeWidth={1.9} />
           </div>
-          <div style={{display: 'flex', flexDirection: 'column', gap: 4}}>
+          <div style={{display: 'flex', flexDirection: 'column', gap: 10, minWidth: 0}}>
             <span
               style={{
                 fontFamily: fontBody,
                 fontWeight: 700,
-                fontSize: 25,
+                fontSize: 32,
                 color: colors.textPrimary,
               }}
             >
               Distribuidora Gelato Sul
             </span>
-            <div style={{display: 'flex', gap: 10}}>
-              <Pill bg={colors.warningSoft} color="#92400E" fontSize={16}>
-                <Star size={16} color="#92400E" fill="#F59E0B" />
+            <div style={{display: 'flex', gap: 12, flexWrap: 'wrap'}}>
+              <Pill bg={colors.warningSoft} color="#92400E" fontSize={20}>
+                <Star size={20} color="#92400E" fill="#F59E0B" />
                 Fornecedor principal
               </Pill>
-              <Pill bg={colors.successSoft} color={colors.success} fontSize={16}>
-                <Truck size={16} color={colors.success} />
+              <Pill bg={colors.successSoft} color={colors.success} fontSize={20}>
+                <Truck size={20} color={colors.success} />
                 Entrega em 2 dias
               </Pill>
             </div>
@@ -297,28 +321,44 @@ export const Scene09: React.FC = () => {
             justifyContent: 'space-between',
             alignItems: 'center',
             borderTop: `1px solid ${colors.borderSoft}`,
-            paddingTop: 16,
+            paddingTop: 22,
+            gap: 20,
           }}
         >
-          <span
-            style={{
-              fontFamily: fontDisplay,
-              fontWeight: 700,
-              fontSize: 38,
-              color: colors.textPrimary,
-              whiteSpace: 'nowrap',
-            }}
-          >
-            R$ 189,90
-          </span>
+          <div style={{display: 'flex', flexDirection: 'column', gap: 4}}>
+            <span
+              style={{
+                fontFamily: fontBody,
+                fontSize: 18,
+                fontWeight: 600,
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+                color: colors.textMuted,
+              }}
+            >
+              Pistache puro · 1 kg
+            </span>
+            <span
+              style={{
+                fontFamily: fontDisplay,
+                fontWeight: 700,
+                fontSize: 56,
+                color: colors.textPrimary,
+                whiteSpace: 'nowrap',
+                lineHeight: 1,
+              }}
+            >
+              R$ 189,90
+            </span>
+          </div>
           <div
             style={{
               backgroundColor: colors.primary,
               color: colors.textInverse,
               fontFamily: fontBody,
               fontWeight: 600,
-              fontSize: 20,
-              padding: '14px 24px',
+              fontSize: 26,
+              padding: '20px 32px',
               borderRadius: radius.md,
               boxShadow: shadows.md,
               whiteSpace: 'nowrap',

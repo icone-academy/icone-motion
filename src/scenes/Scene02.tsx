@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import {SceneBackground} from '../components/SceneBackground';
 import {AnimatedText} from '../components/AnimatedText';
-import {colors, radius, shadows, tracking} from '../theme';
+import {colors, radius, shadows, tracking, type} from '../theme';
 import {fontBody, fontDisplay} from '../fonts';
 
 /**
@@ -27,12 +27,12 @@ import {fontBody, fontDisplay} from '../fonts';
  * uma única plataforma para gelato artesanal e industrial.
  */
 
-const IMPACT_PEAK = 48;
-const PILLARS_IN = 70;
-const CONVERGE_START = 160;
-const CONVERGE_END = 250;
-const LOCKUP_HOLD = 280;
-const PLATFORM_IN = 310;
+const IMPACT_PEAK = 40;
+const PILLARS_IN = 55;
+const CONVERGE_START = 115;
+const CONVERGE_END = 185;
+const LOCKUP_HOLD = 205;
+const PLATFORM_IN = 220;
 
 /** Os quatro pilares da narração — orbitam e convergem no logo. */
 const PILLARS = [
@@ -40,7 +40,7 @@ const PILLARS = [
     icon: FlaskConical,
     label: 'Formulação',
     angle: -0.9,
-    radius: 340,
+    radius: 380,
     bg: colors.primarySoft,
     color: colors.primary,
   },
@@ -48,7 +48,7 @@ const PILLARS = [
     icon: Scale,
     label: 'Balanceamento',
     angle: 0.55,
-    radius: 360,
+    radius: 400,
     bg: colors.infoSoft,
     color: colors.info,
   },
@@ -56,7 +56,7 @@ const PILLARS = [
     icon: BookOpen,
     label: 'Conhecimento técnico',
     angle: 2.4,
-    radius: 350,
+    radius: 390,
     bg: colors.successSoft,
     color: colors.success,
   },
@@ -64,7 +64,7 @@ const PILLARS = [
     icon: Database,
     label: 'Acesso a ingredientes',
     angle: 3.9,
-    radius: 370,
+    radius: 410,
     bg: '#F5F3FF',
     color: colors.pacViolet,
   },
@@ -126,7 +126,7 @@ const BrandCore: React.FC<{scaleBoost?: number; compact?: boolean}> = ({
   });
 
   const glowPulse = 0.4 + 0.6 * Math.sin(frame / 14);
-  const logoSize = compact ? 120 : 220;
+  const logoSize = compact ? 120 : 260;
 
   return (
     <div
@@ -134,7 +134,7 @@ const BrandCore: React.FC<{scaleBoost?: number; compact?: boolean}> = ({
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: compact ? 6 : 10,
+        gap: compact ? 6 : 12,
         transform: `scale(${(0.7 + slam * 0.3) * scaleBoost})`,
         opacity: slam,
       }}
@@ -166,7 +166,7 @@ const BrandCore: React.FC<{scaleBoost?: number; compact?: boolean}> = ({
             style={{
               fontFamily: fontDisplay,
               fontWeight: 700,
-              fontSize: 108,
+              fontSize: 130,
               letterSpacing: '0.2em',
               color: colors.textPrimary,
               marginTop: 4,
@@ -178,7 +178,7 @@ const BrandCore: React.FC<{scaleBoost?: number; compact?: boolean}> = ({
             style={{
               fontFamily: fontDisplay,
               fontWeight: 500,
-              fontSize: 34,
+              fontSize: 48,
               letterSpacing: tracking.industrial,
               textTransform: 'uppercase',
               color: colors.primary,
@@ -242,14 +242,14 @@ const ConvergingPillar: React.FC<(typeof PILLARS)[number] & {index: number}> = (
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: 10,
+        gap: 12,
         zIndex: 6,
       }}
     >
       <div
         style={{
-          width: 100,
-          height: 100,
+          width: 120,
+          height: 120,
           borderRadius: radius.lg,
           backgroundColor: colors.surface,
           border: `2px solid ${color}`,
@@ -261,8 +261,8 @@ const ConvergingPillar: React.FC<(typeof PILLARS)[number] & {index: number}> = (
       >
         <div
           style={{
-            width: 72,
-            height: 72,
+            width: 88,
+            height: 88,
             borderRadius: radius.md,
             backgroundColor: bg,
             display: 'flex',
@@ -270,18 +270,18 @@ const ConvergingPillar: React.FC<(typeof PILLARS)[number] & {index: number}> = (
             justifyContent: 'center',
           }}
         >
-          <Icon size={36} color={color} strokeWidth={1.9} />
+          <Icon size={44} color={color} strokeWidth={1.9} />
         </div>
       </div>
       <span
         style={{
           fontFamily: fontBody,
           fontWeight: 700,
-          fontSize: 20,
+          fontSize: 30,
           color: colors.textPrimary,
           backgroundColor: 'rgba(248,246,242,0.92)',
-          padding: '6px 14px',
-          borderRadius: 20,
+          padding: '8px 18px',
+          borderRadius: 22,
           border: `1px solid ${colors.border}`,
           whiteSpace: 'nowrap',
           boxShadow: shadows.sm,
@@ -316,7 +316,7 @@ const UnifiedPlatform: React.FC<{delay: number}> = ({delay}) => {
       style={{
         opacity: rise,
         transform: `translateY(${(1 - rise) * 80}px) scale(${0.96 + rise * 0.04})`,
-        width: 1520,
+        width: 1840,
         borderRadius: radius.shell,
         backgroundColor: colors.surface,
         border: `1px solid ${colors.border}`,
@@ -330,22 +330,22 @@ const UnifiedPlatform: React.FC<{delay: number}> = ({delay}) => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '18px 32px',
+          padding: '24px 28px',
           borderBottom: `1px solid ${colors.borderSoft}`,
           backgroundColor: colors.surfaceMuted,
         }}
       >
-        <div style={{display: 'flex', alignItems: 'center', gap: 14}}>
+        <div style={{display: 'flex', alignItems: 'center', gap: 16}}>
           <Img
             src={staticFile('brand/logo-light-transparent.png')}
-            style={{width: 40, height: 40, objectFit: 'contain'}}
+            style={{width: 56, height: 56, objectFit: 'contain'}}
           />
           <div style={{display: 'flex', flexDirection: 'column', gap: 2}}>
             <span
               style={{
                 fontFamily: fontDisplay,
                 fontWeight: 700,
-                fontSize: 22,
+                fontSize: 36,
                 letterSpacing: '0.14em',
                 color: colors.textPrimary,
               }}
@@ -355,7 +355,7 @@ const UnifiedPlatform: React.FC<{delay: number}> = ({delay}) => {
             <span
               style={{
                 fontFamily: fontBody,
-                fontSize: 14,
+                fontSize: 20,
                 color: colors.primary,
                 fontWeight: 500,
               }}
@@ -368,10 +368,10 @@ const UnifiedPlatform: React.FC<{delay: number}> = ({delay}) => {
           style={{
             fontFamily: fontBody,
             fontWeight: 600,
-            fontSize: 16,
+            fontSize: 22,
             color: colors.textMuted,
-            padding: '8px 16px',
-            borderRadius: 20,
+            padding: '12px 22px',
+            borderRadius: 24,
             backgroundColor: colors.primarySoft,
             border: `1px solid ${colors.borderSoft}`,
           }}
@@ -383,23 +383,23 @@ const UnifiedPlatform: React.FC<{delay: number}> = ({delay}) => {
       {/* Hero da plataforma */}
       <div
         style={{
-          margin: 28,
+          margin: '20px 20px 24px',
           borderRadius: radius.lg,
           background: `linear-gradient(125deg, ${colors.primary} 0%, ${colors.primaryHover} 55%, #5C4E42 100%)`,
-          padding: '36px 44px',
+          padding: '44px 48px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          gap: 32,
+          gap: 40,
           boxShadow: shadows.md,
         }}
       >
-        <div style={{display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 820}}>
+        <div style={{display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 1180, flex: 1}}>
           <span
             style={{
               fontFamily: fontDisplay,
               fontWeight: 600,
-              fontSize: 18,
+              fontSize: 26,
               letterSpacing: tracking.industrial,
               textTransform: 'uppercase',
               color: 'rgba(255,255,255,0.75)',
@@ -411,9 +411,9 @@ const UnifiedPlatform: React.FC<{delay: number}> = ({delay}) => {
             style={{
               fontFamily: fontDisplay,
               fontWeight: 700,
-              fontSize: 42,
+              fontSize: 68,
               color: colors.textInverse,
-              lineHeight: 1.15,
+              lineHeight: 1.12,
             }}
           >
             Tudo o que a produção precisa — reunido.
@@ -421,7 +421,7 @@ const UnifiedPlatform: React.FC<{delay: number}> = ({delay}) => {
           <span
             style={{
               fontFamily: fontBody,
-              fontSize: 22,
+              fontSize: 36,
               color: 'rgba(255,255,255,0.82)',
             }}
           >
@@ -430,7 +430,7 @@ const UnifiedPlatform: React.FC<{delay: number}> = ({delay}) => {
         </div>
         <Img
           src={staticFile('brand/logo-dark-transparent.png')}
-          style={{width: 96, height: 96, objectFit: 'contain', opacity: 0.95}}
+          style={{width: 140, height: 140, objectFit: 'contain', opacity: 0.95, flexShrink: 0}}
         />
       </div>
 
@@ -439,8 +439,8 @@ const UnifiedPlatform: React.FC<{delay: number}> = ({delay}) => {
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(5, 1fr)',
-          gap: 16,
-          padding: '0 28px 32px',
+          gap: 18,
+          padding: '0 20px 28px',
         }}
       >
         {PLATFORM_MODULES.map((mod, i) => {
@@ -459,16 +459,16 @@ const UnifiedPlatform: React.FC<{delay: number}> = ({delay}) => {
                 border: `1px solid ${colors.border}`,
                 backgroundColor: colors.surface,
                 boxShadow: shadows.sm,
-                padding: '20px 16px',
+                padding: '30px 22px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 12,
+                gap: 18,
               }}
             >
               <div
                 style={{
-                  width: 52,
-                  height: 52,
+                  width: 80,
+                  height: 80,
                   borderRadius: radius.md,
                   backgroundColor: mod.bg,
                   display: 'flex',
@@ -476,27 +476,27 @@ const UnifiedPlatform: React.FC<{delay: number}> = ({delay}) => {
                   justifyContent: 'center',
                 }}
               >
-                <mod.icon size={26} color={mod.color} strokeWidth={2} />
+                <mod.icon size={40} color={mod.color} strokeWidth={2} />
               </div>
               <div
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  gap: 6,
+                  gap: 8,
                 }}
               >
                 <span
                   style={{
                     fontFamily: fontBody,
                     fontWeight: 600,
-                    fontSize: 18,
+                    fontSize: 30,
                     color: colors.textPrimary,
                   }}
                 >
                   {mod.label}
                 </span>
-                <ArrowRight size={18} color={colors.primaryMuted} />
+                <ArrowRight size={24} color={colors.primaryMuted} />
               </div>
             </div>
           );
@@ -553,7 +553,7 @@ export const Scene02: React.FC = () => {
 
   const afterMergeCopy = interpolate(
     frame,
-    [CONVERGE_END + 8, CONVERGE_END + 24, PLATFORM_IN - 20, PLATFORM_IN],
+    [CONVERGE_END + 8, CONVERGE_END + 14, PLATFORM_IN - 10, PLATFORM_IN],
     [0, 1, 1, 0],
     {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'},
   );
@@ -625,10 +625,10 @@ export const Scene02: React.FC = () => {
               style={{
                 fontFamily: fontBody,
                 fontWeight: 500,
-                fontSize: 28,
+                fontSize: 48,
                 color: colors.textSecondary,
                 backgroundColor: 'rgba(248,246,242,0.9)',
-                padding: '12px 28px',
+                padding: '16px 32px',
                 borderRadius: radius.md,
                 border: `1px solid ${colors.border}`,
               }}
@@ -659,7 +659,7 @@ export const Scene02: React.FC = () => {
               style={{
                 fontFamily: fontDisplay,
                 fontWeight: 700,
-                fontSize: 52,
+                fontSize: type.title,
                 letterSpacing: '0.06em',
                 textTransform: 'uppercase',
                 color: colors.primary,
@@ -668,7 +668,7 @@ export const Scene02: React.FC = () => {
             <div
               style={{
                 fontFamily: fontBody,
-                fontSize: 26,
+                fontSize: type.body,
                 color: colors.textMuted,
                 opacity: taglineIn,
               }}

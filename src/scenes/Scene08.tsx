@@ -20,9 +20,8 @@ import {colors, radius, shadows} from '../theme';
 import {fontBody} from '../fonts';
 
 /**
- * Cena 8 (2:08–2:25) — Fluxo automático: ingrediente → cálculo
- * nutricional → ficha técnica → rótulo, com conectores animados
- * e um "pulso" de dados percorrendo o caminho.
+ * Cena 8 — Fluxo automático: ingrediente → cálculo
+ * nutricional → ficha técnica → rótulo.
  */
 
 const NODES = [
@@ -32,11 +31,11 @@ const NODES = [
   {icon: Tag, label: 'Rótulo', sub: 'pronto p/ rotulagem', bg: colors.warningSoft, color: colors.warning},
 ];
 
-const NODE_W = 300;
-const GAP = 120;
+const NODE_W = 380;
+const GAP = 70;
 const TOTAL_W = NODES.length * NODE_W + (NODES.length - 1) * GAP;
 const START_X = (1920 - TOTAL_W) / 2;
-const NODE_Y = 470;
+const NODE_Y = 480;
 
 const nodeDelay = (i: number) => 20 + i * 55;
 
@@ -44,7 +43,6 @@ export const Scene08: React.FC = () => {
   const frame = useCurrentFrame();
   const {fps} = useVideoConfig();
 
-  // Pulso de dados: percorre todo o fluxo em loop após a construção
   const flowStart = nodeDelay(NODES.length - 1) + 30;
   const pulseProgress =
     frame > flowStart ? ((frame - flowStart) % 110) / 110 : -1;
@@ -56,8 +54,10 @@ export const Scene08: React.FC = () => {
 
   return (
     <SceneBackground>
-      <AbsoluteFill style={{alignItems: 'center', paddingTop: 60, gap: 12}}>
-        <Eyebrow delay={2}>Do ingrediente ao rótulo</Eyebrow>
+      <AbsoluteFill style={{alignItems: 'center', paddingTop: 48, gap: 14}}>
+        <Eyebrow delay={2} fontSize={38}>
+          Do ingrediente ao rótulo
+        </Eyebrow>
         <AnimatedText
           text="Os dados fluem automaticamente entre receita e documentos"
           delay={12}
@@ -65,13 +65,14 @@ export const Scene08: React.FC = () => {
           style={{
             fontFamily: fontBody,
             fontWeight: 500,
-            fontSize: 30,
+            fontSize: 36,
             color: colors.textMuted,
+            maxWidth: 1400,
+            textAlign: 'center',
           }}
         />
       </AbsoluteFill>
 
-      {/* Conectores */}
       {NODES.slice(0, -1).map((_, i) => {
         const x0 = START_X + (i + 1) * NODE_W + i * GAP;
         const draw = spring({
@@ -84,11 +85,11 @@ export const Scene08: React.FC = () => {
             key={i}
             style={{
               position: 'absolute',
-              left: x0 + 10,
-              top: NODE_Y + 60,
-              width: GAP - 20,
-              height: 5,
-              borderRadius: 2.5,
+              left: x0 + 8,
+              top: NODE_Y + 78,
+              width: GAP - 16,
+              height: 7,
+              borderRadius: 3.5,
               background: `linear-gradient(90deg, ${colors.primaryMuted}, ${colors.primary})`,
               transform: `scaleX(${draw})`,
               transformOrigin: 'left center',
@@ -98,24 +99,22 @@ export const Scene08: React.FC = () => {
         );
       })}
 
-      {/* Pulso de dados */}
       {pulseVisible ? (
         <div
           style={{
             position: 'absolute',
             left: pulseX,
-            top: NODE_Y + 62,
-            width: 22,
-            height: 22,
+            top: NODE_Y + 81,
+            width: 28,
+            height: 28,
             borderRadius: '50%',
             backgroundColor: colors.primary,
-            boxShadow: `0 0 24px rgba(122,106,90,0.65)`,
+            boxShadow: `0 0 28px rgba(122,106,90,0.65)`,
             transform: 'translate(-50%, -50%)',
           }}
         />
       ) : null}
 
-      {/* Nós do fluxo */}
       {NODES.map((node, i) => {
         const delay = nodeDelay(i);
         const pop = spring({
@@ -128,10 +127,9 @@ export const Scene08: React.FC = () => {
           fps,
           config: {damping: 10, stiffness: 220, mass: 0.5},
         });
-        // Nó "acende" quando o pulso passa por ele
         const nodeCenter = START_X + i * (NODE_W + GAP) + NODE_W / 2;
         const lit =
-          pulseVisible && Math.abs(pulseX - nodeCenter) < 70 ? 1 : 0;
+          pulseVisible && Math.abs(pulseX - nodeCenter) < 80 ? 1 : 0;
 
         return (
           <div
@@ -139,7 +137,7 @@ export const Scene08: React.FC = () => {
             style={{
               position: 'absolute',
               left: START_X + i * (NODE_W + GAP),
-              top: NODE_Y - 60,
+              top: NODE_Y - 80,
               width: NODE_W,
               opacity: pop,
               transform: `translateY(${(1 - pop) * 44}px) scale(${1 + lit * 0.03})`,
@@ -149,24 +147,26 @@ export const Scene08: React.FC = () => {
               style={{
                 position: 'relative',
                 borderRadius: radius.lg,
-                border: `1.5px solid ${lit ? colors.primary : colors.border}`,
+                border: `2px solid ${lit ? colors.primary : colors.border}`,
                 backgroundColor: colors.surface,
                 boxShadow: lit ? shadows.shell : shadows.md,
-                padding: '30px 24px',
+                padding: '36px 28px',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                gap: 12,
+                gap: 14,
+                minHeight: 280,
+                justifyContent: 'center',
               }}
             >
               <div
                 style={{
                   position: 'absolute',
-                  top: -15,
-                  right: -15,
+                  top: -18,
+                  right: -18,
                   transform: `scale(${checkPop})`,
-                  width: 40,
-                  height: 40,
+                  width: 48,
+                  height: 48,
                   borderRadius: '50%',
                   backgroundColor: colors.success,
                   display: 'flex',
@@ -175,12 +175,12 @@ export const Scene08: React.FC = () => {
                   boxShadow: shadows.md,
                 }}
               >
-                <CheckCircle2 size={24} color={colors.textInverse} strokeWidth={2.2} />
+                <CheckCircle2 size={28} color={colors.textInverse} strokeWidth={2.2} />
               </div>
               <div
                 style={{
-                  width: 84,
-                  height: 84,
+                  width: 104,
+                  height: 104,
                   borderRadius: radius.md,
                   backgroundColor: node.bg,
                   display: 'flex',
@@ -188,20 +188,28 @@ export const Scene08: React.FC = () => {
                   justifyContent: 'center',
                 }}
               >
-                <node.icon size={42} color={node.color} strokeWidth={1.9} />
+                <node.icon size={52} color={node.color} strokeWidth={1.9} />
               </div>
               <span
                 style={{
                   fontFamily: fontBody,
                   fontWeight: 700,
-                  fontSize: 25,
+                  fontSize: 30,
                   color: colors.textPrimary,
                   textAlign: 'center',
+                  lineHeight: 1.2,
                 }}
               >
                 {node.label}
               </span>
-              <span style={{fontFamily: fontBody, fontSize: 19, color: colors.textMuted}}>
+              <span
+                style={{
+                  fontFamily: fontBody,
+                  fontSize: 20,
+                  color: colors.textMuted,
+                  textAlign: 'center',
+                }}
+              >
                 {node.sub}
               </span>
             </div>
@@ -209,14 +217,17 @@ export const Scene08: React.FC = () => {
         );
       })}
 
-      {/* Caption */}
-      <AbsoluteFill style={{alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 110}}>
+      <AbsoluteFill
+        style={{alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 90}}
+      >
         <div
           style={{
             fontFamily: fontBody,
-            fontSize: 28,
+            fontSize: 34,
             color: colors.textSecondary,
             fontWeight: 500,
+            textAlign: 'center',
+            maxWidth: 1400,
             opacity: interpolate(frame, [280, 305], [0, 1], {
               extrapolateLeft: 'clamp',
               extrapolateRight: 'clamp',

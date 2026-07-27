@@ -30,12 +30,12 @@ import {fontBody, fontDisplay} from '../fonts';
  * (planilhas, fichas, anotações, sistemas) → pergunta final.
  */
 
-const IDEAL_OUT = 95;
-const RECIPE_IN = 70;
-const CHAOS_START = 130;
-const WORDS_IN = 360;
-const WORDS_OUT = 480;
-const QUESTION_IN = 500;
+const IDEAL_OUT = 60;
+const RECIPE_IN = 45;
+const CHAOS_START = 85;
+const WORDS_IN = 240;
+const WORDS_OUT = 320;
+const QUESTION_IN = 340;
 
 /** Três pilares do craft — aparecem calmos no início. */
 const PILLARS = [
@@ -160,14 +160,14 @@ const Pillar: React.FC<(typeof PILLARS)[number] & {index: number; fadeOut: numbe
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: 16,
-        width: 260,
+        gap: 18,
+        width: 290,
       }}
     >
       <div
         style={{
-          width: 110,
-          height: 110,
+          width: 140,
+          height: 140,
           borderRadius: radius.lg,
           backgroundColor: soft,
           border: `1.5px solid ${tint}`,
@@ -177,13 +177,13 @@ const Pillar: React.FC<(typeof PILLARS)[number] & {index: number; fadeOut: numbe
           justifyContent: 'center',
         }}
       >
-        <Icon size={52} color={tint} strokeWidth={1.8} />
+        <Icon size={60} color={tint} strokeWidth={1.8} />
       </div>
       <span
         style={{
           fontFamily: fontDisplay,
           fontWeight: 600,
-          fontSize: 32,
+          fontSize: 44,
           letterSpacing: '0.08em',
           textTransform: 'uppercase',
           color: colors.textPrimary,
@@ -609,12 +609,12 @@ const FlyingDoc: React.FC<{doc: (typeof DOCS)[number]; index: number}> = ({doc, 
           opacity: labelIn,
           fontFamily: fontDisplay,
           fontWeight: 600,
-          fontSize: 18,
+          fontSize: 22,
           letterSpacing: '0.1em',
           textTransform: 'uppercase',
           color: colors.primary,
           backgroundColor: colors.surface,
-          padding: '4px 12px',
+          padding: '6px 14px',
           borderRadius: 999,
           border: `1px solid ${colors.border}`,
           boxShadow: shadows.sm,
@@ -736,22 +736,22 @@ const RecipeCore: React.FC = () => {
       />
       <div
         style={{
-          width: 340,
+          width: 580,
           borderRadius: radius.shell,
           backgroundColor: colors.surface,
           border: `2px solid ${blast > 0.2 ? colors.danger : colors.border}`,
           boxShadow: blast > 0.2 ? `0 20px 60px rgba(194,65,12,${0.15 + blast * 0.2})` : shadows.shell,
-          padding: 28,
+          padding: 44,
           display: 'flex',
           flexDirection: 'column',
-          gap: 14,
+          gap: 18,
         }}
       >
         <span
           style={{
             fontFamily: fontDisplay,
             fontWeight: 700,
-            fontSize: 28,
+            fontSize: 56,
             color: colors.textPrimary,
             textAlign: 'center',
           }}
@@ -761,14 +761,14 @@ const RecipeCore: React.FC = () => {
         <span
           style={{
             fontFamily: fontBody,
-            fontSize: 17,
+            fontSize: 30,
             color: colors.textMuted,
             textAlign: 'center',
           }}
         >
           Gelato artesanal & industrial
         </span>
-        <div style={{display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4}}>
+        <div style={{display: 'flex', flexDirection: 'column', gap: 12, marginTop: 6}}>
           {['Composição', 'Parâmetros técnicos', 'Documentação'].map((row, i) => {
             const rowIn = interpolate(frame - RECIPE_IN - 14 - i * 8, [0, 10], [0, 1], {
               extrapolateLeft: 'clamp',
@@ -781,16 +781,16 @@ const RecipeCore: React.FC = () => {
                 key={row}
                 style={{
                   opacity: rowIn,
-                  height: 36,
+                  height: 56,
                   borderRadius: radius.sm,
                   backgroundColor: cracked ? colors.dangerSoft : colors.surfaceMuted,
                   border: `1px solid ${cracked ? colors.danger : colors.borderSoft}`,
                   display: 'flex',
                   alignItems: 'center',
-                  padding: '0 14px',
+                  padding: '0 22px',
                   fontFamily: fontBody,
                   fontWeight: 600,
-                  fontSize: 16,
+                  fontSize: 28,
                   color: cracked ? colors.danger : colors.textSecondary,
                   textDecoration: cracked ? 'line-through' : 'none',
                 }}
@@ -836,15 +836,15 @@ export const Scene01: React.FC = () => {
             alignItems: 'center',
             justifyContent: 'center',
             opacity: idealOpacity,
-            gap: 28,
+            gap: 36,
           }}
         >
           <div
             style={{
               fontFamily: fontBody,
-              fontSize: 28,
+              fontSize: 40,
               color: colors.textMuted,
-              marginBottom: 20,
+              marginBottom: 24,
               opacity: interpolate(frame, [4, 18], [0, 1], {
                 extrapolateLeft: 'clamp',
                 extrapolateRight: 'clamp',
@@ -853,7 +853,7 @@ export const Scene01: React.FC = () => {
           >
             Desenvolver uma receita profissional exige
           </div>
-          <div style={{display: 'flex', gap: 56}}>
+          <div style={{display: 'flex', gap: 64}}>
             {PILLARS.map((pillar, i) => (
               <Pillar key={pillar.label} {...pillar} index={i} fadeOut={idealFade} />
             ))}
@@ -874,7 +874,7 @@ export const Scene01: React.FC = () => {
           style={{
             alignItems: 'center',
             justifyContent: 'flex-end',
-            paddingBottom: 70,
+            paddingBottom: 64,
           }}
         >
           <div
@@ -887,15 +887,15 @@ export const Scene01: React.FC = () => {
               ),
               fontFamily: fontBody,
               fontWeight: 500,
-              fontSize: 28,
+              fontSize: 48,
               color: colors.textSecondary,
               backgroundColor: 'rgba(248,246,242,0.88)',
-              padding: '14px 28px',
+              padding: '18px 36px',
               borderRadius: radius.md,
               border: `1px solid ${colors.border}`,
               boxShadow: shadows.sm,
               textAlign: 'center',
-              maxWidth: 1100,
+              maxWidth: 1400,
             }}
           >
             Informações espalhadas entre planilhas, fichas, anotações e sistemas diferentes.
@@ -931,7 +931,7 @@ export const Scene01: React.FC = () => {
                   opacity: pop,
                   fontFamily: fontDisplay,
                   fontWeight: 700,
-                  fontSize: 48,
+                  fontSize: 68,
                   letterSpacing: '0.05em',
                   textTransform: 'uppercase',
                   color: fail > 0.5 ? colors.danger : colors.textPrimary,
@@ -956,7 +956,7 @@ export const Scene01: React.FC = () => {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: 22,
+            gap: 26,
           }}
         >
           <AnimatedText
@@ -966,8 +966,8 @@ export const Scene01: React.FC = () => {
             style={{
               fontFamily: fontDisplay,
               fontWeight: 600,
-              fontSize: 78,
-              lineHeight: 1.2,
+              fontSize: 104,
+              lineHeight: 1.15,
               color: colors.primary,
             }}
           />
@@ -975,7 +975,7 @@ export const Scene01: React.FC = () => {
             style={{
               fontFamily: fontBody,
               fontWeight: 400,
-              fontSize: 28,
+              fontSize: 40,
               color: colors.textMuted,
               opacity: interpolate(frame, [QUESTION_IN + 28, QUESTION_IN + 48], [0, 1], {
                 extrapolateLeft: 'clamp',

@@ -1,5 +1,5 @@
 import React from 'react';
-import {colors, tracking} from '../theme';
+import {colors, tracking, type} from '../theme';
 import {fontDisplay} from '../fonts';
 import {FadeIn} from './FadeIn';
 
@@ -9,7 +9,7 @@ export const Eyebrow: React.FC<{
   delay?: number;
   color?: string;
   fontSize?: number;
-}> = ({children, delay = 0, color = colors.primary, fontSize = 26}) => {
+}> = ({children, delay = 0, color = colors.primary, fontSize = type.eyebrow}) => {
   return (
     <FadeIn delay={delay} distance={16}>
       <div

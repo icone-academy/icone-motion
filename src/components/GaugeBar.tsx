@@ -17,6 +17,8 @@ export const GaugeBar: React.FC<{
   delay?: number;
   width?: number;
   labelColor?: string;
+  fontSize?: number;
+  barHeight?: number;
 }> = ({
   label,
   valueLabel,
@@ -26,6 +28,8 @@ export const GaugeBar: React.FC<{
   delay = 0,
   width = 420,
   labelColor,
+  fontSize = 26,
+  barHeight = 16,
 }) => {
   const frame = useCurrentFrame();
   const {fps} = useVideoConfig();
@@ -47,8 +51,8 @@ export const GaugeBar: React.FC<{
         style={{
           display: 'flex',
           justifyContent: 'space-between',
-          marginBottom: 8,
-          fontSize: 22,
+          marginBottom: Math.round(barHeight * 0.5),
+          fontSize,
         }}
       >
         <span style={{fontWeight: 600, color: labelColor ?? colors.textSecondary}}>
@@ -60,8 +64,8 @@ export const GaugeBar: React.FC<{
       </div>
       <div
         style={{
-          height: 14,
-          borderRadius: 7,
+          height: barHeight,
+          borderRadius: Math.round(barHeight / 2),
           backgroundColor: trackColor,
           overflow: 'hidden',
         }}
@@ -70,7 +74,7 @@ export const GaugeBar: React.FC<{
           style={{
             height: '100%',
             width: `${Math.min(1, fraction) * fill * 100}%`,
-            borderRadius: 7,
+            borderRadius: Math.max(1, Math.round(barHeight / 2) - 1),
             backgroundColor: color,
           }}
         />

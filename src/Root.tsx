@@ -25,7 +25,7 @@ const base = {
 export const RemotionRoot: React.FC = () => {
   return (
     <>
-      {/* Vídeo completo (3:07) */}
+      {/* Vídeo completo (4:15 — sync VO) */}
       <Composition
         id="Main"
         component={Main}

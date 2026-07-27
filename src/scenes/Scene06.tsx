@@ -15,12 +15,12 @@ import {colors, radius, shadows} from '../theme';
 import {fontBody, fontDisplay} from '../fonts';
 
 /**
- * Cena 6 (1:25–1:48) — Correção automática: gauges em vermelho →
+ * Cena 6 — Correção automática: gauges em vermelho →
  * processamento (ring + steps) → resultado antes/depois em verde.
  */
 
-const PROCESS_IN = 120;
-const RESULT_IN = 330;
+const PROCESS_IN = 90;
+const RESULT_IN = 220;
 
 const STEPS = [
   'Analisando a formulação',
@@ -47,15 +47,17 @@ const ProcessingPanel: React.FC<{delay: number}> = ({delay}) => {
     config: {damping: 200, stiffness: 100},
   });
 
-  // Ring: rotação 3.2s por volta (96 frames) + pulso de opacidade 2.4s
   const rotation = (local / 96) * 360;
   const pulseOpacity = 0.65 + 0.35 * Math.sin((local / 72) * Math.PI * 2);
   const percent = Math.round(
-    interpolate(local, [0, 170], [0, 100], {
+    interpolate(local, [0, 110], [0, 100], {
       extrapolateLeft: 'clamp',
       extrapolateRight: 'clamp',
     }),
   );
+
+  const ring = 340;
+  const ringR = 144;
 
   return (
     <div
@@ -64,14 +66,13 @@ const ProcessingPanel: React.FC<{delay: number}> = ({delay}) => {
         transform: `scale(${0.94 + enter * 0.06})`,
         display: 'flex',
         alignItems: 'center',
-        gap: 70,
+        gap: 88,
       }}
     >
-      {/* Anel de processamento (112px no app; ampliado para o vídeo) */}
-      <div style={{position: 'relative', width: 260, height: 260}}>
+      <div style={{position: 'relative', width: ring, height: ring}}>
         <svg
-          width={260}
-          height={260}
+          width={ring}
+          height={ring}
           style={{
             position: 'absolute',
             inset: 0,
@@ -80,22 +81,22 @@ const ProcessingPanel: React.FC<{delay: number}> = ({delay}) => {
           }}
         >
           <circle
-            cx={130}
-            cy={130}
-            r={112}
+            cx={ring / 2}
+            cy={ring / 2}
+            r={ringR}
             fill="none"
             stroke={colors.primarySoft}
-            strokeWidth={14}
+            strokeWidth={18}
           />
           <circle
-            cx={130}
-            cy={130}
-            r={112}
+            cx={ring / 2}
+            cy={ring / 2}
+            r={ringR}
             fill="none"
             stroke={colors.primary}
-            strokeWidth={14}
+            strokeWidth={18}
             strokeLinecap="round"
-            strokeDasharray={`${2 * Math.PI * 112 * 0.28} ${2 * Math.PI * 112}`}
+            strokeDasharray={`${2 * Math.PI * ringR * 0.28} ${2 * Math.PI * ringR}`}
           />
         </svg>
         <div
@@ -106,15 +107,15 @@ const ProcessingPanel: React.FC<{delay: number}> = ({delay}) => {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: 8,
+            gap: 12,
           }}
         >
-          <Wand2 size={54} color={colors.primary} strokeWidth={1.8} />
+          <Wand2 size={72} color={colors.primary} strokeWidth={1.8} />
           <span
             style={{
               fontFamily: fontBody,
               fontWeight: 700,
-              fontSize: 40,
+              fontSize: 64,
               color: colors.textPrimary,
             }}
           >
@@ -123,18 +124,16 @@ const ProcessingPanel: React.FC<{delay: number}> = ({delay}) => {
         </div>
       </div>
 
-      {/* Lista de steps */}
-      <div style={{display: 'flex', flexDirection: 'column', gap: 14}}>
+      <div style={{display: 'flex', flexDirection: 'column', gap: 20}}>
         {STEPS.map((step, i) => {
-          const stepStart = 20 + i * 40;
-          const stepDone = stepStart + 40;
+          const stepStart = 12 + i * 32;
+          const stepDone = stepStart + 32;
           const isActive = local >= stepStart && local < stepDone;
           const isDone = local >= stepDone;
           const stepIn = interpolate(local - stepStart + 10, [0, 10], [0, 1], {
             extrapolateLeft: 'clamp',
             extrapolateRight: 'clamp',
           });
-          // Check pop 350ms (~10 frames)
           const checkPop = spring({
             frame: local - stepDone,
             fps,
@@ -150,8 +149,8 @@ const ProcessingPanel: React.FC<{delay: number}> = ({delay}) => {
                 opacity: stepIn,
                 display: 'flex',
                 alignItems: 'center',
-                gap: 16,
-                padding: '14px 24px',
+                gap: 20,
+                padding: '22px 32px',
                 borderRadius: radius.md,
                 backgroundColor: isDone
                   ? 'rgba(47, 133, 90, 0.10)'
@@ -159,32 +158,32 @@ const ProcessingPanel: React.FC<{delay: number}> = ({delay}) => {
                     ? 'rgba(122, 106, 90, 0.10)'
                     : colors.surfaceMuted,
                 border: `1px solid ${isDone ? colors.successSoft : colors.borderSoft}`,
-                width: 620,
+                width: 780,
               }}
             >
               {isDone ? (
                 <div style={{transform: `scale(${checkPop})`}}>
-                  <CheckCircle2 size={28} color={colors.success} strokeWidth={2.2} />
+                  <CheckCircle2 size={40} color={colors.success} strokeWidth={2.2} />
                 </div>
               ) : (
-                <svg width={28} height={28} style={{transform: `rotate(${spinnerAngle}deg)`}}>
+                <svg width={40} height={40} style={{transform: `rotate(${spinnerAngle}deg)`}}>
                   <circle
-                    cx={14}
-                    cy={14}
-                    r={11}
+                    cx={20}
+                    cy={20}
+                    r={15}
                     fill="none"
                     stroke={isActive ? colors.primary : colors.border}
-                    strokeWidth={3}
+                    strokeWidth={4}
                     strokeLinecap="round"
-                    strokeDasharray="52 70"
+                    strokeDasharray="72 92"
                   />
                 </svg>
               )}
               <span
                 style={{
                   fontFamily: fontBody,
-                  fontWeight: isActive || isDone ? 600 : 400,
-                  fontSize: 24,
+                  fontWeight: isActive || isDone ? 600 : 500,
+                  fontSize: 32,
                   color: isDone
                     ? colors.success
                     : isActive
@@ -224,12 +223,12 @@ const BeforeAfter: React.FC<{delay: number}> = ({delay}) => {
     return (
       <div
         style={{
-          width: 480,
+          width: 620,
           borderRadius: radius.lg,
           border: `1.5px solid ${isAfter ? 'rgba(122,106,90,0.25)' : colors.border}`,
           backgroundColor: isAfter ? 'rgba(122,106,90,0.05)' : colors.surfaceMuted,
           boxShadow: shadows.md,
-          padding: 30,
+          padding: 40,
         }}
       >
         <div
@@ -237,14 +236,14 @@ const BeforeAfter: React.FC<{delay: number}> = ({delay}) => {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            marginBottom: 20,
+            marginBottom: 26,
           }}
         >
           <span
             style={{
               fontFamily: fontDisplay,
               fontWeight: 600,
-              fontSize: 26,
+              fontSize: 40,
               textTransform: 'uppercase',
               letterSpacing: '0.1em',
               color: isAfter ? colors.primary : colors.textMuted,
@@ -255,7 +254,8 @@ const BeforeAfter: React.FC<{delay: number}> = ({delay}) => {
           <Pill
             bg={isAfter ? 'rgba(16,185,129,0.15)' : 'rgba(220,38,38,0.12)'}
             color={isAfter ? colors.success : colors.gaugeRed}
-            fontSize={17}
+            fontSize={24}
+            style={{padding: '10px 20px'}}
           >
             {isAfter ? 'Perfect' : 'Out'}
           </Pill>
@@ -273,19 +273,20 @@ const BeforeAfter: React.FC<{delay: number}> = ({delay}) => {
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                padding: '13px 16px',
+                padding: '18px 22px',
                 borderRadius: radius.sm,
                 backgroundColor: colors.surface,
                 border: `1px solid ${colors.borderSoft}`,
-                marginBottom: 10,
+                marginBottom: 14,
                 fontFamily: fontBody,
-                fontSize: 22,
+                fontSize: 32,
               }}
             >
               <span style={{fontWeight: 500, color: colors.textSecondary}}>{param.label}</span>
               <span
                 style={{
                   fontWeight: 700,
+                  fontSize: 34,
                   color: isAfter ? colors.success : colors.gaugeRed,
                 }}
               >
@@ -306,38 +307,37 @@ const BeforeAfter: React.FC<{delay: number}> = ({delay}) => {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: 34,
+        gap: 28,
       }}
     >
-      {/* Métrica de melhoria */}
       <div
         style={{
           transform: `scale(${metricPop})`,
           display: 'flex',
           alignItems: 'center',
-          gap: 16,
+          gap: 18,
         }}
       >
-        <TrendingUp size={52} color={colors.success} strokeWidth={2.2} />
+        <TrendingUp size={64} color={colors.success} strokeWidth={2.2} />
         <span
           style={{
             fontFamily: fontDisplay,
             fontWeight: 700,
-            fontSize: 76,
+            fontSize: 68,
             color: colors.success,
           }}
         >
-          +38% de equilíbrio
+          +38% de melhora
         </span>
       </div>
 
-      <div style={{display: 'flex', alignItems: 'center', gap: 40}}>
+      <div style={{display: 'flex', alignItems: 'center', gap: 28}}>
         {renderCard('before')}
         <div
           style={{
             transform: `scale(${arrowIn})`,
-            width: 88,
-            height: 88,
+            width: 104,
+            height: 104,
             borderRadius: '50%',
             backgroundColor: colors.primary,
             display: 'flex',
@@ -346,7 +346,7 @@ const BeforeAfter: React.FC<{delay: number}> = ({delay}) => {
             boxShadow: shadows.md,
           }}
         >
-          <ArrowRight size={44} color={colors.textInverse} strokeWidth={2.4} />
+          <ArrowRight size={52} color={colors.textInverse} strokeWidth={2.4} />
         </div>
         {renderCard('after')}
       </div>
@@ -370,16 +370,17 @@ export const Scene06: React.FC = () => {
 
   return (
     <SceneBackground>
-      <AbsoluteFill style={{alignItems: 'center', paddingTop: 50}}>
-        <Eyebrow delay={2}>Correção automática</Eyebrow>
+      <AbsoluteFill style={{alignItems: 'center', paddingTop: 32}}>
+        <Eyebrow delay={2} fontSize={40}>
+          Correção automática
+        </Eyebrow>
       </AbsoluteFill>
 
-      {/* Fase 1 — problema */}
       {frame < PROCESS_IN ? (
         <AbsoluteFill
           style={{alignItems: 'center', justifyContent: 'center', opacity: introOpacity}}
         >
-          <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 26}}>
+          <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 36}}>
             <AnimatedText
               text="Receita desequilibrada."
               delay={10}
@@ -387,19 +388,20 @@ export const Scene06: React.FC = () => {
               style={{
                 fontFamily: fontDisplay,
                 fontWeight: 700,
-                fontSize: 84,
+                fontSize: 118,
                 color: colors.gaugeRed,
               }}
             />
-            <div style={{display: 'flex', gap: 18}}>
+            <div style={{display: 'flex', gap: 22}}>
               {['PAC 32.4', 'Sólidos 46%', 'Açúcares 26%'].map((tag, i) => (
                 <Pill
                   key={tag}
                   bg="rgba(220,38,38,0.12)"
                   color={colors.gaugeRed}
                   border={colors.gaugeRed}
-                  fontSize={24}
+                  fontSize={34}
                   style={{
+                    padding: '14px 30px',
                     opacity: interpolate(frame - 40 - i * 10, [0, 8], [0, 1], {
                       extrapolateLeft: 'clamp',
                       extrapolateRight: 'clamp',
@@ -414,7 +416,6 @@ export const Scene06: React.FC = () => {
         </AbsoluteFill>
       ) : null}
 
-      {/* Fase 2 — processamento */}
       {frame >= PROCESS_IN && frame < RESULT_IN ? (
         <AbsoluteFill
           style={{alignItems: 'center', justifyContent: 'center', opacity: processOpacity}}
@@ -423,16 +424,15 @@ export const Scene06: React.FC = () => {
         </AbsoluteFill>
       ) : null}
 
-      {/* Fase 3 — antes/depois */}
       {frame >= RESULT_IN ? (
         <AbsoluteFill
-          style={{alignItems: 'center', justifyContent: 'center', paddingTop: 30}}
+          style={{alignItems: 'center', justifyContent: 'center', paddingTop: 16}}
         >
           <BeforeAfter delay={RESULT_IN} />
-          <div style={{marginTop: 44, maxWidth: 1400, textAlign: 'center'}}>
+          <div style={{marginTop: 32, maxWidth: 1700, textAlign: 'center'}}>
             <AnimatedText
               text="ICone não apenas identifica o problema. Ele propõe uma solução."
-              delay={RESULT_IN + 110}
+              delay={RESULT_IN + 80}
               stagger={3}
               style={{
                 fontFamily: fontDisplay,

@@ -2,7 +2,7 @@
   "name": "icone-motion",
   "version": "1.0.0",
   "private": true,
-  "description": "Motion graphics institucional da Ícone — plataforma para gelateria profissional (Remotion)",
+  "description": "Motion graphics institucional da ICone — plataforma para gelateria profissional (Remotion)",
   "scripts": {
     "dev": "remotion studio",
     "render": "remotion render Main out/icone-institucional.mp4",

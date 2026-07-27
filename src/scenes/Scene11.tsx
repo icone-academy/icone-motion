@@ -13,7 +13,7 @@ import {SceneBackground} from '../components/SceneBackground';
 import {LogoReveal} from '../components/LogoReveal';
 import {AnimatedText} from '../components/AnimatedText';
 import {Pill} from '../components/Pill';
-import {colors, radius, shadows, tracking} from '../theme';
+import {colors, radius, shadows, tracking, type} from '../theme';
 import {fontBody, fontDisplay} from '../fonts';
 
 /**
@@ -47,7 +47,7 @@ export const Scene11: React.FC = () => {
   return (
     <SceneBackground>
       <AbsoluteFill style={{alignItems: 'center', justifyContent: 'center', gap: 22}}>
-        <LogoReveal delay={6} size={190} variant="light" />
+        <LogoReveal delay={6} size={220} variant="light" />
 
         <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10}}>
           <AnimatedText
@@ -56,7 +56,7 @@ export const Scene11: React.FC = () => {
             style={{
               fontFamily: fontDisplay,
               fontWeight: 700,
-              fontSize: 84,
+              fontSize: type.display,
               letterSpacing: '0.18em',
               color: colors.textPrimary,
             }}
@@ -68,7 +68,7 @@ export const Scene11: React.FC = () => {
             style={{
               fontFamily: fontDisplay,
               fontWeight: 400,
-              fontSize: 32,
+              fontSize: type.displaySub,
               letterSpacing: tracking.industrial,
               textTransform: 'uppercase',
               color: colors.primary,
@@ -81,7 +81,7 @@ export const Scene11: React.FC = () => {
             style={{
               fontFamily: fontBody,
               fontWeight: 400,
-              fontSize: 28,
+              fontSize: type.lead,
               color: colors.textMuted,
               maxWidth: 1100,
               marginTop: 6,
@@ -100,8 +100,8 @@ export const Scene11: React.FC = () => {
             color: colors.textInverse,
             fontFamily: fontBody,
             fontWeight: 600,
-            fontSize: 31,
-            padding: '20px 52px',
+            fontSize: type.cta,
+            padding: '24px 58px',
             borderRadius: radius.md,
             boxShadow: `0 8px 24px rgba(63,48,40,${0.15 + ctaGlow * 0.1}), 0 0 ${30 + ctaGlow * 24}px rgba(122,106,90,${0.2 + ctaGlow * 0.15})`,
           }}
@@ -128,7 +128,7 @@ export const Scene11: React.FC = () => {
               gap: 12,
               fontFamily: fontBody,
               fontWeight: 600,
-              fontSize: 28,
+              fontSize: type.body,
               color: colors.textSecondary,
             }}
           >
@@ -150,9 +150,9 @@ export const Scene11: React.FC = () => {
           >
             <Img
               src={staticFile('brand/qr-icone-academy.png')}
-              style={{width: 118, height: 118, borderRadius: radius.sm}}
+              style={{width: 150, height: 150, borderRadius: radius.sm}}
             />
-            <span style={{fontFamily: fontBody, fontSize: 14, color: colors.textMuted}}>
+            <span style={{fontFamily: fontBody, fontSize: type.caption, color: colors.textMuted}}>
               Aponte a câmera
             </span>
           </div>

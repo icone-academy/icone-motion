@@ -1,5 +1,5 @@
 import React from 'react';
-import {colors} from '../theme';
+import {colors, type} from '../theme';
 import {fontBody} from '../fonts';
 
 /** Badge pill de status (Perfect/Technical/Out, Validado, etc.). */
@@ -15,7 +15,7 @@ export const Pill: React.FC<{
   bg = colors.primarySoft,
   color = colors.primary,
   border,
-  fontSize = 20,
+  fontSize = type.pill,
   style,
 }) => {
   return (
@@ -29,7 +29,7 @@ export const Pill: React.FC<{
         border: border ? `1.5px solid ${border}` : undefined,
         // ~metade da altura (fontSize*1.2 + padding); raio seguro p/ pill
         borderRadius: Math.round(fontSize),
-        padding: '6px 18px',
+        padding: '8px 22px',
         fontFamily: fontBody,
         fontWeight: 600,
         fontSize,

@@ -56,27 +56,27 @@ const SourceSeal: React.FC<{name: string; full: string; delay: number}> = ({
       style={{
         opacity: Math.min(1, pop * 1.4),
         transform: `scale(${0.7 + pop * 0.3}) translateY(${(1 - pop) * 20}px)`,
-        width: 270,
+        width: 340,
         borderRadius: radius.lg,
         border: `1.5px solid ${colors.border}`,
         backgroundColor: colors.surface,
         boxShadow: shadows.md,
-        padding: '30px 24px',
+        padding: '40px 30px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: 10,
+        gap: 14,
         position: 'relative',
       }}
     >
       <div
         style={{
           position: 'absolute',
-          top: -16,
-          right: -16,
+          top: -18,
+          right: -18,
           transform: `scale(${checkPop})`,
-          width: 44,
-          height: 44,
+          width: 56,
+          height: 56,
           borderRadius: '50%',
           backgroundColor: colors.success,
           display: 'flex',
@@ -85,12 +85,12 @@ const SourceSeal: React.FC<{name: string; full: string; delay: number}> = ({
           boxShadow: shadows.md,
         }}
       >
-        <BadgeCheck size={26} color={colors.textInverse} strokeWidth={2.2} />
+        <BadgeCheck size={32} color={colors.textInverse} strokeWidth={2.2} />
       </div>
       <div
         style={{
-          width: 74,
-          height: 74,
+          width: 96,
+          height: 96,
           borderRadius: '50%',
           backgroundColor: colors.primarySoft,
           display: 'flex',
@@ -98,20 +98,20 @@ const SourceSeal: React.FC<{name: string; full: string; delay: number}> = ({
           justifyContent: 'center',
         }}
       >
-        <FileText size={34} color={colors.primary} strokeWidth={1.9} />
+        <FileText size={46} color={colors.primary} strokeWidth={1.9} />
       </div>
       <span
         style={{
           fontFamily: fontDisplay,
           fontWeight: 700,
-          fontSize: 34,
+          fontSize: 52,
           letterSpacing: '0.06em',
           color: colors.textPrimary,
         }}
       >
         {name}
       </span>
-      <span style={{fontFamily: fontBody, fontSize: 19, color: colors.textMuted}}>
+      <span style={{fontFamily: fontBody, fontSize: 26, color: colors.textMuted, textAlign: 'center'}}>
         {full}
       </span>
     </div>
@@ -130,73 +130,85 @@ export const Scene04: React.FC = () => {
 
   return (
     <SceneBackground>
+      {/* Header no topo */}
       <AbsoluteFill
         style={{
           alignItems: 'center',
-          justifyContent: 'center',
-          gap: 40,
-          paddingTop: 20,
+          justifyContent: 'flex-start',
+          paddingTop: 48,
+          pointerEvents: 'none',
         }}
       >
-        <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12}}>
-          <Eyebrow delay={4}>Origem dos dados</Eyebrow>
+        <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14}}>
+          <Eyebrow delay={4} fontSize={36}>
+            Origem dos dados
+          </Eyebrow>
 
-          {/* Barra de validação (tab Fonte) */}
           <div
             style={{
               opacity: panelIn,
               transform: `translateY(${(1 - panelIn) * 30}px)`,
               display: 'flex',
               alignItems: 'center',
-              gap: 18,
+              gap: 20,
               backgroundColor: colors.surface,
               border: `1.5px solid ${colors.success}`,
               borderRadius: radius.lg,
               boxShadow: shadows.md,
-              padding: '18px 32px',
+              padding: '22px 36px',
             }}
           >
-            <ShieldCheck size={38} color={colors.success} strokeWidth={2} />
+            <ShieldCheck size={46} color={colors.success} strokeWidth={2} />
             <span
               style={{
                 fontFamily: fontBody,
                 fontWeight: 700,
-                fontSize: 28,
+                fontSize: 40,
                 color: colors.textPrimary,
               }}
             >
               Campo Fonte
             </span>
-            <Pill bg={colors.successSoft} color="#166534" border={colors.success} fontSize={20}>
-              <BadgeCheck size={20} color="#166534" />
+            <Pill bg={colors.successSoft} color="#166534" border={colors.success} fontSize={24}>
+              <BadgeCheck size={24} color="#166534" />
               Validado · 12/07/2026
             </Pill>
             <span
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: 8,
+                gap: 10,
                 fontFamily: fontBody,
-                fontSize: 19,
+                fontSize: 24,
                 color: colors.textMuted,
               }}
             >
-              <Link2 size={19} color={colors.textMuted} />
+              <Link2 size={24} color={colors.textMuted} />
               3 referências
-              <ExternalLink size={17} color={colors.textMuted} />
+              <ExternalLink size={22} color={colors.textMuted} />
             </span>
           </div>
         </div>
+      </AbsoluteFill>
 
-        {/* Selos das fontes */}
-        <div style={{display: 'flex', gap: 34}}>
+      {/* Cards centralizados */}
+      <AbsoluteFill style={{alignItems: 'center', justifyContent: 'center'}}>
+        <div style={{display: 'flex', gap: 32}}>
           {SOURCES.map((source, i) => (
             <SourceSeal key={source.name} {...source} delay={60 + i * 22} />
           ))}
         </div>
+      </AbsoluteFill>
 
-        {/* Texto de fechamento */}
-        <div style={{textAlign: 'center', maxWidth: 1200}}>
+      {/* Texto de fechamento embaixo */}
+      <AbsoluteFill
+        style={{
+          alignItems: 'center',
+          justifyContent: 'flex-end',
+          paddingBottom: 56,
+        }}
+      >
+        <div style={{textAlign: 'center', maxWidth: 1400}}>
           <AnimatedText
             text="Dados documentados e rastreáveis"
             delay={190}
@@ -204,15 +216,15 @@ export const Scene04: React.FC = () => {
             style={{
               fontFamily: fontDisplay,
               fontWeight: 600,
-              fontSize: 66,
+              fontSize: 88,
               color: colors.primary,
             }}
           />
           <div
             style={{
-              marginTop: 20,
+              marginTop: 22,
               fontFamily: fontBody,
-              fontSize: 27,
+              fontSize: 40,
               color: colors.textMuted,
               opacity: interpolate(frame, [230, 252], [0, 1], {
                 extrapolateLeft: 'clamp',

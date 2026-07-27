@@ -1,5 +1,5 @@
 /**
- * Design tokens extraídos do design system real da Ícone Academy
+ * Design tokens extraídos do design system real da ICone Academy
  * (src/shared/design-system/tokens/brand-tokens.json + semantic.css)
  */
 
@@ -77,6 +77,35 @@ export const spacing = {
   lg: 24,
   xl: 32,
   xxl: 48,
+} as const;
+
+/**
+ * Tipografia ampliada p/ legibilidade em celular (16:9 em tela estreita).
+ * Usar nestes tokens — não aplicar scale global (corta o frame).
+ */
+export const type = {
+  /** Headline cinético / pergunta hero */
+  hero: 92,
+  /** Título de marca / display grande */
+  display: 100,
+  /** Subtítulo de marca / tagline */
+  displaySub: 40,
+  /** Título de seção / words cinéticos */
+  title: 56,
+  /** Subtítulo / lead sob headline */
+  lead: 34,
+  /** Corpo / legendas principais */
+  body: 30,
+  /** Labels de UI / cards */
+  label: 24,
+  /** Caption / meta */
+  caption: 18,
+  /** Eyebrow Oswald */
+  eyebrow: 32,
+  /** Pill padrão */
+  pill: 24,
+  /** CTA botão */
+  cta: 36,
 } as const;
 
 export const tracking = {

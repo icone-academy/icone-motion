@@ -10,9 +10,10 @@ import {
   Barcode,
   CheckCircle2,
   ClipboardList,
+  FlaskConical,
   Package,
   ScanSearch,
-  Sparkles,
+  Tag,
 } from 'lucide-react';
 import {SceneBackground} from '../components/SceneBackground';
 import {Eyebrow} from '../components/Eyebrow';
@@ -23,14 +24,14 @@ import {colors, radius, shadows} from '../theme';
 import {fontBody, fontDisplay} from '../fonts';
 
 /**
- * Cena extra (2:25–2:45) — Engenharia reversa de produtos do
- * mercado: embalagem genérica → leitura do rótulo → processamento
- * → composição estimada com proporções aproximadas.
+ * Engenharia reversa — roteiro:
+ * problema (sem formulação) → leitura do rótulo → reconstrução
+ * científica → composição estimada + balancear/etiquetar (não é IA).
  */
 
-const SCAN_IN = 115; // produto vai para a esquerda, painel do rótulo entra
-const PROCESS_IN = 255;
-const RESULT_IN = 385;
+const SCAN_IN = 450; // problema (VO 2:50–3:05)
+const PROCESS_IN = 600; // rótulo
+const RESULT_IN = 750; // composição + “não é IA”
 
 const LABEL_INGREDIENTS = [
   'Leite integral, açúcar, xarope de glicose,',
@@ -48,9 +49,9 @@ const LABEL_NUTRITION = [
 ];
 
 const STEPS = [
-  'Lendo informações do rótulo',
-  'Cruzando com o banco de ingredientes',
-  'Estimando proporções prováveis',
+  'Lendo as informações do rótulo',
+  'Cruzando com o banco técnico da ICone',
+  'Reconstruindo uma composição coerente',
 ];
 
 const ESTIMATED = [
@@ -60,6 +61,11 @@ const ESTIMATED = [
   {label: 'Soro de leite em pó', value: '~9%', fraction: 0.09, color: colors.info},
   {label: 'Pasta de pistache', value: '~6%', fraction: 0.06, color: colors.success},
   {label: 'Neutros e emulsificantes', value: '~1%', fraction: 0.04, color: colors.pacViolet},
+];
+
+const OUTCOMES = [
+  {icon: FlaskConical, label: 'Balancear a receita com segurança'},
+  {icon: Tag, label: 'Gerar etiqueta confiável'},
 ];
 
 /** Embalagem genérica estilizada (pote sem marca). */
@@ -90,76 +96,77 @@ const GenericProduct: React.FC<{delay: number; scale?: number}> = ({
       {/* Tampa */}
       <div
         style={{
-          width: 250,
-          height: 34,
+          width: 420,
+          height: 56,
           borderRadius: '50% / 100%',
-          borderTopLeftRadius: 40,
-          borderTopRightRadius: 40,
+          borderTopLeftRadius: 64,
+          borderTopRightRadius: 64,
           backgroundColor: colors.primaryMuted,
-          border: `2px solid ${colors.primary}`,
+          border: `2.5px solid ${colors.primary}`,
           zIndex: 2,
         }}
       />
       {/* Corpo do pote */}
       <div
         style={{
-          width: 230,
-          height: 260,
-          marginTop: -8,
-          borderBottomLeftRadius: 34,
-          borderBottomRightRadius: 34,
+          width: 390,
+          height: 440,
+          marginTop: -14,
+          borderBottomLeftRadius: 52,
+          borderBottomRightRadius: 52,
           backgroundColor: colors.surface,
-          border: `2px solid ${colors.border}`,
+          border: `2.5px solid ${colors.border}`,
           boxShadow: shadows.shell,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          paddingTop: 22,
-          gap: 10,
+          paddingTop: 36,
+          gap: 18,
         }}
       >
         {/* Rótulo genérico */}
         <div
           style={{
-            width: 176,
-            borderRadius: radius.sm,
+            width: 300,
+            borderRadius: radius.md,
             backgroundColor: colors.primarySoft,
-            border: `1px solid ${colors.borderSoft}`,
-            padding: '12px 14px',
+            border: `1.5px solid ${colors.borderSoft}`,
+            padding: '28px 24px',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: 8,
+            gap: 14,
           }}
         >
-          <Package size={30} color={colors.primary} strokeWidth={1.8} />
+          <Package size={58} color={colors.primary} strokeWidth={1.8} />
           <span
             style={{
               fontFamily: fontDisplay,
               fontWeight: 600,
-              fontSize: 15,
+              fontSize: 28,
               letterSpacing: '0.1em',
               textTransform: 'uppercase',
               color: colors.primary,
+              textAlign: 'center',
+              lineHeight: 1.2,
             }}
           >
             Produto do mercado
           </span>
-          {/* Linhas de texto fake */}
           {[0.9, 0.65, 0.8].map((w, i) => (
             <div
               key={i}
               style={{
-                height: 7,
+                height: 12,
                 width: `${w * 100}%`,
-                borderRadius: 3.5,
+                borderRadius: 6,
                 backgroundColor: colors.primaryMuted,
                 opacity: 0.5,
               }}
             />
           ))}
         </div>
-        <Barcode size={44} color={colors.textMuted} strokeWidth={1.4} />
+        <Barcode size={72} color={colors.textMuted} strokeWidth={1.4} />
       </div>
     </div>
   );
@@ -181,24 +188,24 @@ const LabelPanel: React.FC<{delay: number}> = ({delay}) => {
       style={{
         opacity: enter,
         transform: `translateX(${(1 - enter) * 60}px)`,
-        width: 680,
+        width: 920,
         borderRadius: radius.shell,
         backgroundColor: colors.surface,
         border: `1px solid ${colors.border}`,
         boxShadow: shadows.shell,
-        padding: 32,
+        padding: 42,
         display: 'flex',
         flexDirection: 'column',
-        gap: 20,
+        gap: 26,
       }}
     >
-      <div style={{display: 'flex', alignItems: 'center', gap: 12}}>
-        <ClipboardList size={28} color={colors.primary} />
+      <div style={{display: 'flex', alignItems: 'center', gap: 16}}>
+        <ClipboardList size={40} color={colors.primary} />
         <span
           style={{
             fontFamily: fontBody,
             fontWeight: 700,
-            fontSize: 27,
+            fontSize: 36,
             color: colors.textPrimary,
           }}
         >
@@ -212,14 +219,14 @@ const LabelPanel: React.FC<{delay: number}> = ({delay}) => {
           borderRadius: radius.md,
           backgroundColor: colors.surfaceMuted,
           border: `1px solid ${colors.borderSoft}`,
-          padding: '18px 22px',
+          padding: '24px 28px',
         }}
       >
         <span
           style={{
             fontFamily: fontBody,
             fontWeight: 600,
-            fontSize: 17,
+            fontSize: 22,
             textTransform: 'uppercase',
             letterSpacing: '0.08em',
             color: colors.textMuted,
@@ -227,7 +234,7 @@ const LabelPanel: React.FC<{delay: number}> = ({delay}) => {
         >
           Ingredientes
         </span>
-        <div style={{marginTop: 10, display: 'flex', flexDirection: 'column', gap: 5}}>
+        <div style={{marginTop: 14, display: 'flex', flexDirection: 'column', gap: 8}}>
           {LABEL_INGREDIENTS.map((line, i) => {
             const lineIn = interpolate(frame - delay - 14 - i * 7, [0, 9], [0, 1], {
               extrapolateLeft: 'clamp',
@@ -238,7 +245,7 @@ const LabelPanel: React.FC<{delay: number}> = ({delay}) => {
                 key={i}
                 style={{
                   fontFamily: fontBody,
-                  fontSize: 19,
+                  fontSize: 26,
                   color: colors.textSecondary,
                   opacity: lineIn,
                 }}
@@ -256,14 +263,14 @@ const LabelPanel: React.FC<{delay: number}> = ({delay}) => {
           borderRadius: radius.md,
           backgroundColor: colors.surfaceMuted,
           border: `1px solid ${colors.borderSoft}`,
-          padding: '18px 22px',
+          padding: '24px 28px',
         }}
       >
         <span
           style={{
             fontFamily: fontBody,
             fontWeight: 600,
-            fontSize: 17,
+            fontSize: 22,
             textTransform: 'uppercase',
             letterSpacing: '0.08em',
             color: colors.textMuted,
@@ -271,7 +278,7 @@ const LabelPanel: React.FC<{delay: number}> = ({delay}) => {
         >
           Tabela nutricional · porção 60 g
         </span>
-        <div style={{marginTop: 10}}>
+        <div style={{marginTop: 14}}>
           {LABEL_NUTRITION.map((row, i) => {
             const rowIn = interpolate(frame - delay - 40 - i * 7, [0, 9], [0, 1], {
               extrapolateLeft: 'clamp',
@@ -283,13 +290,13 @@ const LabelPanel: React.FC<{delay: number}> = ({delay}) => {
                 style={{
                   display: 'flex',
                   justifyContent: 'space-between',
-                  padding: '7px 0',
+                  padding: '11px 0',
                   borderBottom:
                     i < LABEL_NUTRITION.length - 1
                       ? `1px solid ${colors.borderSoft}`
                       : 'none',
                   fontFamily: fontBody,
-                  fontSize: 20,
+                  fontSize: 28,
                   opacity: rowIn,
                 }}
               >
@@ -314,7 +321,7 @@ const ReverseProcessing: React.FC<{delay: number}> = ({delay}) => {
   const rotation = (local / 96) * 360;
   const pulseOpacity = 0.65 + 0.35 * Math.sin((local / 72) * Math.PI * 2);
   const percent = Math.round(
-    interpolate(local, [0, 105], [0, 100], {
+    interpolate(local, [0, 120], [0, 100], {
       extrapolateLeft: 'clamp',
       extrapolateRight: 'clamp',
     }),
@@ -327,13 +334,13 @@ const ReverseProcessing: React.FC<{delay: number}> = ({delay}) => {
         transform: `scale(${0.94 + enter * 0.06})`,
         display: 'flex',
         alignItems: 'center',
-        gap: 64,
+        gap: 72,
       }}
     >
-      <div style={{position: 'relative', width: 240, height: 240}}>
+      <div style={{position: 'relative', width: 340, height: 340}}>
         <svg
-          width={240}
-          height={240}
+          width={340}
+          height={340}
           style={{
             position: 'absolute',
             inset: 0,
@@ -341,16 +348,16 @@ const ReverseProcessing: React.FC<{delay: number}> = ({delay}) => {
             opacity: pulseOpacity,
           }}
         >
-          <circle cx={120} cy={120} r={102} fill="none" stroke={colors.primarySoft} strokeWidth={13} />
+          <circle cx={170} cy={170} r={144} fill="none" stroke={colors.primarySoft} strokeWidth={18} />
           <circle
-            cx={120}
-            cy={120}
-            r={102}
+            cx={170}
+            cy={170}
+            r={144}
             fill="none"
             stroke={colors.primary}
-            strokeWidth={13}
+            strokeWidth={18}
             strokeLinecap="round"
-            strokeDasharray={`${2 * Math.PI * 102 * 0.28} ${2 * Math.PI * 102}`}
+            strokeDasharray={`${2 * Math.PI * 144 * 0.28} ${2 * Math.PI * 144}`}
           />
         </svg>
         <div
@@ -361,15 +368,15 @@ const ReverseProcessing: React.FC<{delay: number}> = ({delay}) => {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: 8,
+            gap: 10,
           }}
         >
-          <ScanSearch size={50} color={colors.primary} strokeWidth={1.8} />
+          <ScanSearch size={68} color={colors.primary} strokeWidth={1.8} />
           <span
             style={{
               fontFamily: fontBody,
               fontWeight: 700,
-              fontSize: 36,
+              fontSize: 56,
               color: colors.textPrimary,
             }}
           >
@@ -378,10 +385,10 @@ const ReverseProcessing: React.FC<{delay: number}> = ({delay}) => {
         </div>
       </div>
 
-      <div style={{display: 'flex', flexDirection: 'column', gap: 14}}>
+      <div style={{display: 'flex', flexDirection: 'column', gap: 20}}>
         {STEPS.map((step, i) => {
-          const stepStart = 12 + i * 34;
-          const stepDone = stepStart + 34;
+          const stepStart = 10 + i * 36;
+          const stepDone = stepStart + 36;
           const isActive = local >= stepStart && local < stepDone;
           const isDone = local >= stepDone;
           const stepIn = interpolate(local - stepStart + 10, [0, 10], [0, 1], {
@@ -403,8 +410,8 @@ const ReverseProcessing: React.FC<{delay: number}> = ({delay}) => {
                 opacity: stepIn,
                 display: 'flex',
                 alignItems: 'center',
-                gap: 16,
-                padding: '14px 24px',
+                gap: 20,
+                padding: '22px 32px',
                 borderRadius: radius.md,
                 backgroundColor: isDone
                   ? 'rgba(47, 133, 90, 0.10)'
@@ -412,24 +419,24 @@ const ReverseProcessing: React.FC<{delay: number}> = ({delay}) => {
                     ? 'rgba(122, 106, 90, 0.10)'
                     : colors.surfaceMuted,
                 border: `1px solid ${isDone ? colors.successSoft : colors.borderSoft}`,
-                width: 640,
+                width: 900,
               }}
             >
               {isDone ? (
                 <div style={{transform: `scale(${checkPop})`}}>
-                  <CheckCircle2 size={28} color={colors.success} strokeWidth={2.2} />
+                  <CheckCircle2 size={38} color={colors.success} strokeWidth={2.2} />
                 </div>
               ) : (
-                <svg width={28} height={28} style={{transform: `rotate(${spinnerAngle}deg)`}}>
+                <svg width={38} height={38} style={{transform: `rotate(${spinnerAngle}deg)`}}>
                   <circle
-                    cx={14}
-                    cy={14}
-                    r={11}
+                    cx={19}
+                    cy={19}
+                    r={14.5}
                     fill="none"
                     stroke={isActive ? colors.primary : colors.border}
-                    strokeWidth={3}
+                    strokeWidth={4}
                     strokeLinecap="round"
-                    strokeDasharray="52 70"
+                    strokeDasharray="68 90"
                   />
                 </svg>
               )}
@@ -437,7 +444,7 @@ const ReverseProcessing: React.FC<{delay: number}> = ({delay}) => {
                 style={{
                   fontFamily: fontBody,
                   fontWeight: isActive || isDone ? 600 : 400,
-                  fontSize: 24,
+                  fontSize: 30,
                   color: isDone
                     ? colors.success
                     : isActive
@@ -478,7 +485,6 @@ export const SceneReverseEngineering: React.FC = () => {
     config: {damping: 200, stiffness: 90},
   });
 
-  // Pulsos de dados fluindo da embalagem para o painel (fase de leitura)
   const scanLocal = frame - SCAN_IN;
   const dots = [0, 1, 2].map((i) => {
     const p = ((scanLocal - i * 16 + 48) % 48) / 48;
@@ -487,34 +493,55 @@ export const SceneReverseEngineering: React.FC = () => {
 
   return (
     <SceneBackground>
-      <AbsoluteFill style={{alignItems: 'center', paddingTop: 52}}>
-        <Eyebrow delay={2}>Engenharia reversa</Eyebrow>
+      <AbsoluteFill style={{alignItems: 'center', paddingTop: 36, zIndex: 5}}>
+        <Eyebrow delay={2} fontSize={38}>
+          Engenharia reversa
+        </Eyebrow>
       </AbsoluteFill>
 
-      {/* Fase 1 — pergunta + produto genérico */}
+      {/* Fase 1 — problema: sem formulação completa */}
       {frame < SCAN_IN ? (
         <AbsoluteFill
           style={{
             alignItems: 'center',
             justifyContent: 'center',
-            gap: 44,
+            gap: 32,
             opacity: introOpacity,
-            paddingTop: 30,
+            paddingTop: 48,
           }}
         >
           <AnimatedText
-            text="Não sabe como um produto do mercado é feito?"
-            delay={10}
-            stagger={4}
+            text="Sem a formulação completa, balancear e rotular fica difícil."
+            delay={8}
+            stagger={2}
             style={{
               fontFamily: fontDisplay,
               fontWeight: 600,
-              fontSize: 66,
+              fontSize: 64,
               color: colors.textPrimary,
-              maxWidth: 1300,
+              maxWidth: 1780,
+              textAlign: 'center',
+              lineHeight: 1.15,
             }}
           />
-          <GenericProduct delay={42} />
+          <div
+            style={{
+              opacity: interpolate(frame, [40, 58], [0, 1], {
+                extrapolateLeft: 'clamp',
+                extrapolateRight: 'clamp',
+              }),
+              fontFamily: fontBody,
+              fontSize: 34,
+              color: colors.textMuted,
+              maxWidth: 1500,
+              textAlign: 'center',
+              lineHeight: 1.35,
+            }}
+          >
+            Ingredientes de empresas especializadas — na maioria das vezes,
+            sem acesso à receita completa do produto.
+          </div>
+          <GenericProduct delay={55} />
         </AbsoluteFill>
       ) : null}
 
@@ -525,19 +552,37 @@ export const SceneReverseEngineering: React.FC = () => {
             alignItems: 'center',
             justifyContent: 'center',
             opacity: scanOpacity,
-            paddingTop: 30,
+            paddingTop: 52,
+            flexDirection: 'column',
+            gap: 28,
           }}
         >
-          <div style={{display: 'flex', alignItems: 'center', gap: 90}}>
-            <GenericProduct delay={SCAN_IN} scale={0.94} />
+          <div
+            style={{
+              fontFamily: fontBody,
+              fontSize: 42,
+              fontWeight: 500,
+              color: colors.textSecondary,
+              textAlign: 'center',
+              maxWidth: 1680,
+              lineHeight: 1.3,
+              opacity: interpolate(frame - SCAN_IN, [0, 14], [0, 1], {
+                extrapolateLeft: 'clamp',
+                extrapolateRight: 'clamp',
+              }),
+            }}
+          >
+            A ICone parte das informações do rótulo para reconstruir a composição.
+          </div>
+          <div style={{display: 'flex', alignItems: 'center', gap: 48}}>
+            <GenericProduct delay={SCAN_IN} scale={0.88} />
 
-            {/* Conector com pulsos */}
-            <div style={{position: 'relative', width: 150, height: 8}}>
+            <div style={{position: 'relative', width: 160, height: 12}}>
               <div
                 style={{
                   position: 'absolute',
                   inset: 0,
-                  borderRadius: 4,
+                  borderRadius: 6,
                   background: `linear-gradient(90deg, ${colors.primaryMuted}, ${colors.primary})`,
                   opacity: 0.45,
                 }}
@@ -550,11 +595,11 @@ export const SceneReverseEngineering: React.FC = () => {
                       position: 'absolute',
                       left: `${dot.p * 100}%`,
                       top: '50%',
-                      width: 18,
-                      height: 18,
+                      width: 24,
+                      height: 24,
                       borderRadius: '50%',
                       backgroundColor: colors.primary,
-                      boxShadow: '0 0 18px rgba(122,106,90,0.6)',
+                      boxShadow: '0 0 22px rgba(122,106,90,0.6)',
                       transform: 'translate(-50%, -50%)',
                     }}
                   />
@@ -567,47 +612,76 @@ export const SceneReverseEngineering: React.FC = () => {
         </AbsoluteFill>
       ) : null}
 
-      {/* Fase 3 — processamento */}
+      {/* Fase 3 — reconstrução científica */}
       {frame >= PROCESS_IN && frame < RESULT_IN ? (
         <AbsoluteFill
-          style={{alignItems: 'center', justifyContent: 'center', opacity: processOpacity}}
+          style={{
+            alignItems: 'center',
+            justifyContent: 'center',
+            opacity: processOpacity,
+            flexDirection: 'column',
+            gap: 36,
+            paddingTop: 36,
+          }}
         >
+          <div
+            style={{
+              fontFamily: fontBody,
+              fontSize: 42,
+              fontWeight: 500,
+              color: colors.textSecondary,
+              textAlign: 'center',
+              maxWidth: 1650,
+              lineHeight: 1.3,
+              opacity: interpolate(frame - PROCESS_IN, [0, 12], [0, 1], {
+                extrapolateLeft: 'clamp',
+                extrapolateRight: 'clamp',
+              }),
+            }}
+          >
+            Ciência e experiência técnica da ICone — não inteligência artificial.
+          </div>
           <ReverseProcessing delay={PROCESS_IN + 4} />
         </AbsoluteFill>
       ) : null}
 
-      {/* Fase 4 — composição estimada */}
+      {/* Fase 4 — composição + benefícios */}
       {frame >= RESULT_IN ? (
         <AbsoluteFill
-          style={{alignItems: 'center', justifyContent: 'center', paddingTop: 36, gap: 30}}
+          style={{
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingTop: 36,
+            gap: 18,
+          }}
         >
           <AnimatedText
-            text="Engenharia reversa de fórmulas"
+            text="Composição estimada — para entender, balancear e rotular"
             delay={RESULT_IN + 4}
-            stagger={4}
+            stagger={2}
             style={{
               fontFamily: fontDisplay,
               fontWeight: 700,
-              fontSize: 64,
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
+              fontSize: 52,
               color: colors.primary,
+              maxWidth: 1780,
+              textAlign: 'center',
             }}
           />
 
           <div
             style={{
               opacity: resultIn,
-              transform: `translateY(${(1 - resultIn) * 44}px)`,
-              width: 900,
+              transform: `translateY(${(1 - resultIn) * 36}px)`,
+              width: 1180,
               borderRadius: radius.shell,
               backgroundColor: colors.surface,
               border: `1px solid ${colors.border}`,
               boxShadow: shadows.shell,
-              padding: '34px 44px',
+              padding: '28px 48px',
               display: 'flex',
               flexDirection: 'column',
-              gap: 20,
+              gap: 14,
             }}
           >
             <div
@@ -615,21 +689,21 @@ export const SceneReverseEngineering: React.FC = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
+                marginBottom: 4,
               }}
             >
               <span
                 style={{
                   fontFamily: fontBody,
                   fontWeight: 700,
-                  fontSize: 28,
+                  fontSize: 34,
                   color: colors.textPrimary,
                 }}
               >
-                Composição estimada
+                Reconstrução coerente a partir do rótulo
               </span>
-              <Pill bg={colors.primarySoft} color={colors.primary} fontSize={19}>
-                <Sparkles size={19} color={colors.primary} />
-                Reconstrução coerente
+              <Pill bg={colors.primarySoft} color={colors.primary} fontSize={22}>
+                Estimativa técnica
               </Pill>
             </div>
             {ESTIMATED.map((item, i) => (
@@ -639,30 +713,76 @@ export const SceneReverseEngineering: React.FC = () => {
                 valueLabel={item.value}
                 fraction={item.fraction}
                 color={item.color}
-                delay={RESULT_IN + 22 + i * 9}
-                width={810}
+                delay={RESULT_IN + 24 + i * 12}
+                width={1080}
+                fontSize={28}
+                barHeight={18}
               />
             ))}
           </div>
 
-          {/* Disclaimer discreto */}
+          <div
+            style={{
+              display: 'flex',
+              gap: 20,
+              opacity: interpolate(frame - RESULT_IN, [90, 115], [0, 1], {
+                extrapolateLeft: 'clamp',
+                extrapolateRight: 'clamp',
+              }),
+            }}
+          >
+            {OUTCOMES.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Pill
+                  key={item.label}
+                  bg={colors.successSoft}
+                  color={colors.success}
+                  fontSize={26}
+                  style={{padding: '16px 28px'}}
+                >
+                  <Icon size={28} color={colors.success} />
+                  {item.label}
+                </Pill>
+              );
+            })}
+          </div>
+
           <div
             style={{
               fontFamily: fontBody,
-              fontSize: 19,
+              fontSize: 30,
+              fontWeight: 600,
+              color: colors.textPrimary,
+              maxWidth: 1680,
+              textAlign: 'center',
+              lineHeight: 1.35,
+              opacity: interpolate(frame - RESULT_IN, [140, 165], [0, 1], {
+                extrapolateLeft: 'clamp',
+                extrapolateRight: 'clamp',
+              }),
+            }}
+          >
+            Esse trabalho não é feito por inteligência artificial —
+            é resultado da ciência e da experiência técnica da ICone.
+          </div>
+
+          <div
+            style={{
+              fontFamily: fontBody,
+              fontSize: 22,
               color: colors.textMuted,
               opacity:
-                0.85 *
-                interpolate(frame - RESULT_IN, [90, 110], [0, 1], {
+                0.9 *
+                interpolate(frame - RESULT_IN, [190, 215], [0, 1], {
                   extrapolateLeft: 'clamp',
                   extrapolateRight: 'clamp',
                 }),
-              maxWidth: 1200,
+              maxWidth: 1400,
               textAlign: 'center',
             }}
           >
-            O resultado é uma estimativa técnica baseada nas informações declaradas no
-            rótulo, não uma fórmula exata do fabricante.
+            Estimativa técnica com base no rótulo — não uma fórmula exata do fabricante.
           </div>
         </AbsoluteFill>
       ) : null}

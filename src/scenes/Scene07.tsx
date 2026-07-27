@@ -16,9 +16,8 @@ import {colors, radius, shadows} from '../theme';
 import {fontBody, fontDisplay} from '../fonts';
 
 /**
- * Cena 7 (1:48–2:08) — Módulo de neutros: partículas
- * (estabilizantes/emulsionantes) orbitam e convergem em um
- * blend central; depois, composição com doses e compatibilidade.
+ * Cena 7 — Módulo de neutros: partículas orbitam e convergem
+ * no centro; depois, composição com doses e compatibilidade.
  */
 
 const CONVERGE_START = 120;
@@ -26,16 +25,14 @@ const CONVERGE_END = 210;
 const BLEND_POP = 200;
 const DETAILS_IN = 260;
 
-const CENTER = {x: 960, y: 470};
-
 const PARTICLES = [
-  {icon: Leaf, angle: 0.1, r: 380, tint: colors.success, label: 'LBG'},
-  {icon: Wheat, angle: 1.0, r: 420, tint: colors.warning, label: 'Guar'},
-  {icon: Snowflake, angle: 1.9, r: 360, tint: colors.info, label: 'Carragena'},
-  {icon: Milk, angle: 2.8, r: 430, tint: colors.primaryMuted, label: 'Emulsificante'},
-  {icon: Leaf, angle: 3.7, r: 390, tint: colors.pacViolet, label: 'Tara'},
-  {icon: Wheat, angle: 4.6, r: 350, tint: colors.sugarPink, label: 'Xantana'},
-  {icon: Snowflake, angle: 5.4, r: 410, tint: colors.gaugeBlue, label: 'CMC'},
+  {icon: Leaf, angle: 0.1, r: 400, tint: colors.success, label: 'LBG'},
+  {icon: Wheat, angle: 1.0, r: 440, tint: colors.warning, label: 'Guar'},
+  {icon: Snowflake, angle: 1.9, r: 380, tint: colors.info, label: 'Carragena'},
+  {icon: Milk, angle: 2.8, r: 450, tint: colors.primaryMuted, label: 'Emulsificante'},
+  {icon: Leaf, angle: 3.7, r: 410, tint: colors.pacViolet, label: 'Tara'},
+  {icon: Wheat, angle: 4.6, r: 370, tint: colors.sugarPink, label: 'Xantana'},
+  {icon: Snowflake, angle: 5.4, r: 430, tint: colors.gaugeBlue, label: 'CMC'},
 ];
 
 const Particle: React.FC<(typeof PARTICLES)[number] & {index: number}> = ({
@@ -55,10 +52,8 @@ const Particle: React.FC<(typeof PARTICLES)[number] & {index: number}> = ({
     config: {damping: 14, stiffness: 120, mass: 0.8},
   });
 
-  // Órbita lenta antes da convergência
   const orbitAngle = angle + frame / 90;
 
-  // Convergência: raio → 0
   const converge = interpolate(frame, [CONVERGE_START + index * 6, CONVERGE_END], [0, 1], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
@@ -66,8 +61,9 @@ const Particle: React.FC<(typeof PARTICLES)[number] & {index: number}> = ({
   const eased = 1 - Math.pow(1 - converge, 3);
   const radius_ = r * (1 - eased);
 
-  const x = CENTER.x + Math.cos(orbitAngle) * radius_;
-  const y = CENTER.y + Math.sin(orbitAngle) * radius_ * 0.62;
+  // Órbita circular em torno da origem (0,0) do stage centralizado
+  const x = Math.cos(orbitAngle) * radius_;
+  const y = Math.sin(orbitAngle) * radius_;
 
   const fadeAtCenter = interpolate(eased, [0.82, 1], [1, 0], {
     extrapolateLeft: 'clamp',
@@ -85,29 +81,29 @@ const Particle: React.FC<(typeof PARTICLES)[number] & {index: number}> = ({
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: 8,
+        gap: 10,
       }}
     >
       <div
         style={{
-          width: 92,
-          height: 92,
+          width: 118,
+          height: 118,
           borderRadius: '50%',
           backgroundColor: colors.surface,
-          border: `2px solid ${tint}`,
+          border: `2.5px solid ${tint}`,
           boxShadow: shadows.md,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
         }}
       >
-        <Icon size={42} color={tint} strokeWidth={1.9} />
+        <Icon size={54} color={tint} strokeWidth={1.9} />
       </div>
       <span
         style={{
           fontFamily: fontBody,
           fontWeight: 600,
-          fontSize: 19,
+          fontSize: 22,
           color: colors.textSecondary,
         }}
       >
@@ -134,13 +130,15 @@ export const Scene07: React.FC = () => {
     config: {damping: 200, stiffness: 90},
   });
 
-  // O blend desliza para a esquerda quando os detalhes entram
-  const blendShift = interpolate(detailsIn, [0, 1], [0, -330]);
+  // Stage desliza para a esquerda quando o painel de detalhes entra
+  const stageShift = interpolate(detailsIn, [0, 1], [0, -340]);
 
   return (
     <SceneBackground>
-      <AbsoluteFill style={{alignItems: 'center', paddingTop: 50, gap: 10}}>
-        <Eyebrow delay={2}>Módulo de Neutros</Eyebrow>
+      <AbsoluteFill style={{alignItems: 'center', paddingTop: 40, gap: 12}}>
+        <Eyebrow delay={2} fontSize={36}>
+          Módulo de Neutros
+        </Eyebrow>
         <AnimatedText
           text="Combinações personalizadas de estabilizantes e emulsionantes"
           delay={14}
@@ -148,105 +146,151 @@ export const Scene07: React.FC = () => {
           style={{
             fontFamily: fontBody,
             fontWeight: 500,
-            fontSize: 30,
+            fontSize: 36,
             color: colors.textMuted,
-            maxWidth: 1200,
+            maxWidth: 1400,
+            textAlign: 'center',
           }}
         />
       </AbsoluteFill>
 
-      {/* Partículas orbitando e convergindo */}
-      {PARTICLES.map((particle, i) => (
-        <Particle key={i} {...particle} index={i} />
-      ))}
-
-      {/* Blend central */}
+      {/* Origem central da tela — partículas e blend orbitam/convergem aqui */}
       <div
         style={{
           position: 'absolute',
-          left: CENTER.x + blendShift,
-          top: CENTER.y,
-          transform: `translate(-50%, -50%) scale(${blendPop})`,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 16,
+          left: '50%',
+          top: '54%',
+          width: 0,
+          height: 0,
+          transform: `translateX(${stageShift}px)`,
         }}
       >
+        {PARTICLES.map((particle, i) => (
+          <Particle key={`${particle.label}-${i}`} {...particle} index={i} />
+        ))}
+
         <div
           style={{
-            position: 'relative',
-            width: 190,
-            height: 190,
-            borderRadius: '50%',
-            background: `linear-gradient(145deg, ${colors.primary} 0%, ${colors.primaryHover} 100%)`,
-            boxShadow: `0 20px 60px rgba(63,48,40,0.25), 0 0 ${40 + blendGlow * 30}px rgba(122,106,90,${0.25 + blendGlow * 0.2})`,
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            transform: `translate(-50%, -50%) scale(${blendPop})`,
             display: 'flex',
+            flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'center',
+            gap: 18,
           }}
         >
-          <FlaskConical size={86} color={colors.textInverse} strokeWidth={1.6} />
+          <div
+            style={{
+              position: 'relative',
+              width: 240,
+              height: 240,
+              borderRadius: '50%',
+              background: `linear-gradient(145deg, ${colors.primary} 0%, ${colors.primaryHover} 100%)`,
+              boxShadow: `0 20px 60px rgba(63,48,40,0.25), 0 0 ${44 + blendGlow * 34}px rgba(122,106,90,${0.25 + blendGlow * 0.2})`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <FlaskConical size={108} color={colors.textInverse} strokeWidth={1.6} />
+          </div>
+          <Pill
+            bg={colors.primarySoft}
+            color={colors.primary}
+            fontSize={26}
+            style={{padding: '10px 22px'}}
+          >
+            Neutro personalizado
+          </Pill>
         </div>
-        <Pill bg={colors.primarySoft} color={colors.primary} fontSize={22}>
-          Neutro personalizado
-        </Pill>
       </div>
 
       {/* Painel de composição do blend */}
       <div
         style={{
           position: 'absolute',
-          left: 1010,
-          top: 300,
+          left: 1040,
+          top: 250,
           opacity: detailsIn,
           transform: `translateX(${(1 - detailsIn) * 60}px)`,
-          width: 620,
+          width: 720,
           borderRadius: radius.shell,
           backgroundColor: colors.surface,
           border: `1px solid ${colors.border}`,
           boxShadow: shadows.shell,
-          padding: 36,
+          padding: 40,
           display: 'flex',
           flexDirection: 'column',
-          gap: 22,
+          gap: 24,
         }}
       >
         <span
           style={{
             fontFamily: fontDisplay,
             fontWeight: 600,
-            fontSize: 30,
+            fontSize: 36,
             color: colors.textPrimary,
           }}
         >
           Neutro Base Branca v2
         </span>
-        <GaugeBar label="LBG (alfarroba)" valueLabel="40%" fraction={0.4} color={colors.success} delay={DETAILS_IN + 12} width={548} />
-        <GaugeBar label="Guar" valueLabel="30%" fraction={0.3} color={colors.warning} delay={DETAILS_IN + 20} width={548} />
-        <GaugeBar label="Carragena" valueLabel="20%" fraction={0.2} color={colors.info} delay={DETAILS_IN + 28} width={548} />
-        <GaugeBar label="Mono e diglicerídeos" valueLabel="10%" fraction={0.1} color={colors.primaryMuted} delay={DETAILS_IN + 36} width={548} />
+        <GaugeBar
+          label="LBG (alfarroba)"
+          valueLabel="40%"
+          fraction={0.4}
+          color={colors.success}
+          delay={DETAILS_IN + 12}
+          width={640}
+        />
+        <GaugeBar
+          label="Guar"
+          valueLabel="30%"
+          fraction={0.3}
+          color={colors.warning}
+          delay={DETAILS_IN + 20}
+          width={640}
+        />
+        <GaugeBar
+          label="Carragena"
+          valueLabel="20%"
+          fraction={0.2}
+          color={colors.info}
+          delay={DETAILS_IN + 28}
+          width={640}
+        />
+        <GaugeBar
+          label="Mono e diglicerídeos"
+          valueLabel="10%"
+          fraction={0.1}
+          color={colors.primaryMuted}
+          delay={DETAILS_IN + 36}
+          width={640}
+        />
 
-        <div style={{display: 'flex', gap: 14, marginTop: 6}}>
+        <div style={{display: 'flex', gap: 14, marginTop: 8, flexWrap: 'wrap'}}>
           <Pill
             bg={colors.successSoft}
             color={colors.success}
-            fontSize={19}
+            fontSize={22}
             style={{
+              padding: '10px 18px',
               opacity: interpolate(frame - DETAILS_IN - 48, [0, 10], [0, 1], {
                 extrapolateLeft: 'clamp',
                 extrapolateRight: 'clamp',
               }),
             }}
           >
-            <CheckCircle2 size={19} color={colors.success} />
+            <CheckCircle2 size={22} color={colors.success} />
             Compatibilidade alta
           </Pill>
           <Pill
             bg={colors.primarySoft}
             color={colors.primary}
-            fontSize={19}
+            fontSize={22}
             style={{
+              padding: '10px 18px',
               opacity: interpolate(frame - DETAILS_IN - 56, [0, 10], [0, 1], {
                 extrapolateLeft: 'clamp',
                 extrapolateRight: 'clamp',

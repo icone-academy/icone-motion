@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import {SceneBackground} from '../components/SceneBackground';
 import {Eyebrow} from '../components/Eyebrow';
-import {colors, radius, shadows} from '../theme';
+import {colors, radius, shadows, type} from '../theme';
 import {fontBody, fontDisplay} from '../fonts';
 
 /**
@@ -100,8 +100,8 @@ export const Scene10: React.FC = () => {
               >
                 <div
                   style={{
-                    width: 70,
-                    height: 70,
+                    width: 82,
+                    height: 82,
                     borderRadius: radius.md,
                     backgroundColor: feature.bg,
                     display: 'flex',
@@ -109,13 +109,13 @@ export const Scene10: React.FC = () => {
                     justifyContent: 'center',
                   }}
                 >
-                  <feature.icon size={36} color={feature.color} strokeWidth={1.9} />
+                  <feature.icon size={42} color={feature.color} strokeWidth={1.9} />
                 </div>
                 <span
                   style={{
                     fontFamily: fontBody,
                     fontWeight: 600,
-                    fontSize: 21,
+                    fontSize: 26,
                     color: colors.textPrimary,
                     textAlign: 'center',
                   }}
@@ -148,7 +148,7 @@ export const Scene10: React.FC = () => {
                   transform: `translateY(${(1 - pop) * 30}px)`,
                   fontFamily: fontDisplay,
                   fontWeight: 600,
-                  fontSize: 46,
+                  fontSize: type.title,
                   textTransform: 'uppercase',
                   letterSpacing: '0.06em',
                   color: i % 2 === 0 ? colors.textPrimary : colors.primary,
@@ -163,7 +163,7 @@ export const Scene10: React.FC = () => {
           style={{
             marginTop: 26,
             fontFamily: fontBody,
-            fontSize: 27,
+            fontSize: type.lead,
             color: colors.textMuted,
             opacity: interpolate(frame, [280, 305], [0, 1], {
               extrapolateLeft: 'clamp',

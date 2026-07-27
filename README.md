@@ -2,8 +2,9 @@
 
 Projeto [Remotion](https://www.remotion.dev/) (React + TypeScript) do vídeo motion graphics institucional da **ICone — Inteligência para Gelato**, plataforma SaaS de ERP para gelaterias e sorveterias profissionais.
 
-- **Resolução:** 1920×1080 · **FPS:** 30 · **Duração total:** 4:05 (7350 frames)
+- **Resolução:** 1920×1080 · **FPS:** 30 · **Duração total (Main):** 4:15 (7650 frames) — sincronizado ao VO
 - **Identidade visual:** design system real do ICone Academy (taupe/cream, Oswald + Inter, sombras warm-brown, ícones Lucide outline)
+- **Legibilidade mobile:** tokens `type.*` em `src/theme.ts` — tipografia/CTA/pills ampliados sem scale global. Cenas 3 e 5 usam beats fullscreen.
 
 ## Como rodar
 
@@ -25,22 +26,22 @@ npx remotion render Scene06 out/cena06.mp4
 
 ## Compositions registradas
 
-| ID | Conteúdo | Timing | Frames |
-|----|----------|--------|--------|
-| `Main` | Vídeo completo (13 cenas) | 0:00–4:05 | 7350 |
-| `Scene01` | Problema: informações espalhadas (caos visual) | 0:00–0:20 | 600 |
-| `Scene02` | Marca ICone + convergência → plataforma única | 0:20–0:38 | 540 |
-| `Scene03` | Banco de ingredientes (lista + tour de abas) | 0:38–1:08 | 900 |
-| `Scene04` | Campo Fonte (USDA, TBCA, TACO, Fabricantes) | 1:08–1:23 | 450 |
-| `Scene05` | Receita + gauges de indicadores | 1:23–1:43 | 600 |
-| `Scene06` | Correção automática (antes/depois) | 1:43–2:06 | 690 |
-| `Scene07` | Módulo de neutros (blend de partículas) | 2:06–2:26 | 600 |
-| `SceneNutritionalTable` | Tabela nutricional + índice glicêmico (diet) | 2:26–2:46 | 600 |
-| `Scene08` | Fluxo ingrediente → nutrição → ficha → rótulo | 2:46–3:03 | 510 |
-| `SceneReverseEngineering` | Engenharia reversa de produtos do mercado | 3:03–3:23 | 600 |
-| `Scene09` | Compra integrada (carrinho + fornecedor) | 3:23–3:40 | 510 |
-| `Scene10` | Montagem de funcionalidades | 3:40–3:55 | 450 |
-| `Scene11` | Logo + CTA "Garanta seu acesso antecipado" + QR | 3:55–4:05 | 300 |
+| ID | Conteúdo | Timing (VO) | Frames |
+|----|----------|-------------|--------|
+| `Main` | Vídeo completo (12 cenas no Main) | 0:00–4:15 | 7650 |
+| `Scene01` | Problema: informações espalhadas | 0:00–0:14 | 420 |
+| `Scene02` | Marca ICone + plataforma única | 0:14–0:29 | 450 |
+| `Scene03` | Banco de ingredientes (lista + abas rápidas) | 0:29–0:46 | 510 |
+| `Scene04` | Fontes USDA / TBCA / TACO / fabricantes | 0:46–1:10 | 720 |
+| `Scene05` | Receita: composição → gauges → resumo → explicação → nutrição | 1:10–2:08 | 1740 |
+| `Scene08` | Etiqueta e ficha técnica | 2:08–2:20 | 360 |
+| `Scene06` | Correção automática | 2:20–2:35 | 450 |
+| `Scene07` | Módulo de neutros | 2:35–2:50 | 450 |
+| `SceneReverseEngineering` | Engenharia reversa (ciência ICone, não IA) | 2:50–3:30 | 1200 |
+| `Scene09` | Compra integrada | 3:30–3:43 | 390 |
+| `Scene10` | Montagem / fechamento | 3:43–3:57 | 420 |
+| `Scene11` | CTA lançamento 15/08/2026 | 3:57–4:15 | 540 |
+| `SceneNutritionalTable` | Export isolado (fora do Main) | — | 600 |
 
 ## Estrutura
 
@@ -49,24 +50,12 @@ icone-motion/
 ├── public/brand/            # Logos oficiais (copiados do icone-frontend)
 ├── src/
 │   ├── index.ts             # registerRoot
-│   ├── Root.tsx             # Registra Main + 11 cenas individuais
-│   ├── Main.tsx             # Timeline completa (Sequence por cena)
-│   ├── timeline.ts          # FPS, resolução e duração das cenas em frames
-│   ├── theme.ts             # Tokens do design system (cores, radius, sombras)
-│   ├── fonts.ts             # Oswald (display) + Inter (corpo) via Google Fonts
-│   ├── components/          # Reutilizáveis
-│   │   ├── AnimatedText.tsx # Texto cinético palavra a palavra
-│   │   ├── GaugeArc.tsx     # Gauge 270° com zonas e agulha animada
-│   │   ├── GaugeBar.tsx     # Barra de métrica animada
-│   │   ├── IconBadge.tsx    # Ícone Lucide em container soft
-│   │   ├── LogoReveal.tsx   # Reveal do logotipo com halo
-│   │   ├── Card.tsx / Pill.tsx / Eyebrow.tsx / FadeIn.tsx / SceneBackground.tsx
-│   └── scenes/              # Scene01.tsx … Scene11.tsx
-└── remotion.config.ts
+│   ├── Root.tsx             # Registra Main + cenas individuais
+│   ├── Main.tsx             # Timeline sincronizada ao VO
+│   ├── timeline.ts          # FPS, resolução e duração das cenas
+│   ├── theme.ts             # Tokens do design system
+│   ├── fonts.ts             # Oswald + Inter
+│   ├── components/
+│   └── scenes/
+└── README.md
 ```
-
-## Observações
-
-- **Sem áudio por enquanto** — os timings seguem a narração de referência do roteiro; a trilha/locução pode ser adicionada depois com `<Audio>` na `Main`.
-- O QR code da Cena 11 (`public/brand/qr-icone-academy.png`) aponta para `https://icone.academy`. Para trocar o destino, gere outro com `npx qrcode "URL" -o public/brand/qr-icone-academy.png -w 512 -q 2 -d 3F3028 -l FFFFFF`.
-- As fontes Oswald e Inter são carregadas via `@remotion/google-fonts` (requer internet no primeiro carregamento).
