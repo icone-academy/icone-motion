@@ -42,7 +42,7 @@ const SCENES: {component: React.FC; duration: number; name: string}[] = [
 
 /**
  * Composição principal: concatena as 13 cenas na timeline
- * (total 7050 frames = 3:55 a 30fps).
+ * (total 7350 frames = 4:05 a 30fps).
  */
 export const Main: React.FC = () => {
   let from = 0;

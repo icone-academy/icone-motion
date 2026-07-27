@@ -2,7 +2,7 @@
 
 Projeto [Remotion](https://www.remotion.dev/) (React + TypeScript) do vídeo motion graphics institucional da **ICone — Inteligência para Gelato**, plataforma SaaS de ERP para gelaterias e sorveterias profissionais.
 
-- **Resolução:** 1920×1080 · **FPS:** 30 · **Duração total:** 3:55 (7050 frames)
+- **Resolução:** 1920×1080 · **FPS:** 30 · **Duração total:** 4:05 (7350 frames)
 - **Identidade visual:** design system real do ICone Academy (taupe/cream, Oswald + Inter, sombras warm-brown, ícones Lucide outline)
 
 ## Como rodar
@@ -27,20 +27,20 @@ npx remotion render Scene06 out/cena06.mp4
 
 | ID | Conteúdo | Timing | Frames |
 |----|----------|--------|--------|
-| `Main` | Vídeo completo (13 cenas) | 0:00–3:55 | 7050 |
-| `Scene01` | Desafios da gelateria (caos + texto cinético) | 0:00–0:15 | 450 |
-| `Scene02` | Reveal do logo + dashboard estilizado | 0:15–0:28 | 390 |
-| `Scene03` | Banco de ingredientes (lista + tour de abas) | 0:28–0:58 | 900 |
-| `Scene04` | Campo Fonte (USDA, TBCA, TACO, Fabricantes) | 0:58–1:13 | 450 |
-| `Scene05` | Receita + gauges de indicadores | 1:13–1:33 | 600 |
-| `Scene06` | Correção automática (antes/depois) | 1:33–1:56 | 690 |
-| `Scene07` | Módulo de neutros (blend de partículas) | 1:56–2:16 | 600 |
-| `SceneNutritionalTable` | Tabela nutricional + índice glicêmico (diet) | 2:16–2:36 | 600 |
-| `Scene08` | Fluxo ingrediente → nutrição → ficha → rótulo | 2:36–2:53 | 510 |
-| `SceneReverseEngineering` | Engenharia reversa de produtos do mercado | 2:53–3:13 | 600 |
-| `Scene09` | Compra integrada (carrinho + fornecedor) | 3:13–3:30 | 510 |
-| `Scene10` | Montagem de funcionalidades | 3:30–3:45 | 450 |
-| `Scene11` | Logo + CTA "Garanta seu acesso antecipado" + QR | 3:45–3:55 | 300 |
+| `Main` | Vídeo completo (13 cenas) | 0:00–4:05 | 7350 |
+| `Scene01` | Problema: informações espalhadas (caos visual) | 0:00–0:20 | 600 |
+| `Scene02` | Marca ICone + convergência → plataforma única | 0:20–0:38 | 540 |
+| `Scene03` | Banco de ingredientes (lista + tour de abas) | 0:38–1:08 | 900 |
+| `Scene04` | Campo Fonte (USDA, TBCA, TACO, Fabricantes) | 1:08–1:23 | 450 |
+| `Scene05` | Receita + gauges de indicadores | 1:23–1:43 | 600 |
+| `Scene06` | Correção automática (antes/depois) | 1:43–2:06 | 690 |
+| `Scene07` | Módulo de neutros (blend de partículas) | 2:06–2:26 | 600 |
+| `SceneNutritionalTable` | Tabela nutricional + índice glicêmico (diet) | 2:26–2:46 | 600 |
+| `Scene08` | Fluxo ingrediente → nutrição → ficha → rótulo | 2:46–3:03 | 510 |
+| `SceneReverseEngineering` | Engenharia reversa de produtos do mercado | 3:03–3:23 | 600 |
+| `Scene09` | Compra integrada (carrinho + fornecedor) | 3:23–3:40 | 510 |
+| `Scene10` | Montagem de funcionalidades | 3:40–3:55 | 450 |
+| `Scene11` | Logo + CTA "Garanta seu acesso antecipado" + QR | 3:55–4:05 | 300 |
 
 ## Estrutura
 

@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "remotion studio",
     "render": "remotion render Main out/icone-institucional.mp4",
+    "render:wsl": "wsl -d Ubuntu-24.04 -- bash scripts/wsl-render.sh Main out/icone-institucional.mp4",
     "render:scene": "remotion render",
+    "fix:compositor": "powershell -ExecutionPolicy Bypass -File scripts/fix-compositor.ps1",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
