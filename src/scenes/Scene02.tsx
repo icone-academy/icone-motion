@@ -5,9 +5,8 @@ import {
   interpolate,
   spring,
   staticFile,
-  useVideoConfig,
 } from 'remotion';
-import {AUTHOR_FPS, T, useAuthoredFrame} from '../timeline';
+import {AUTHOR_FPS, useAuthoredFrame} from '../timeline';
 import {
   ArrowRight,
   BookOpen,
@@ -21,6 +20,8 @@ import {SceneFade} from '../components/SceneFade';
 import {AnimatedText} from '../components/AnimatedText';
 import {colors, radius, shadows, tracking, type} from '../theme';
 import {fontBody, fontDisplay} from '../fonts';
+import {useCopy} from '../i18n/LocaleContext';
+import type {Copy} from '../i18n/copy';
 
 /**
  * Cena 2 — Impacto da marca ICone + convergência das capacidades
@@ -35,11 +36,9 @@ const CONVERGE_END = 185;
 const LOCKUP_HOLD = 205;
 const PLATFORM_IN = 220;
 
-/** Os quatro pilares da narração — orbitam e convergem no logo. */
-const PILLARS = [
+const PILLAR_META = [
   {
     icon: FlaskConical,
-    label: 'Formulação',
     angle: -0.9,
     radius: 380,
     bg: colors.primarySoft,
@@ -47,7 +46,6 @@ const PILLARS = [
   },
   {
     icon: Scale,
-    label: 'Balanceamento',
     angle: 0.55,
     radius: 400,
     bg: colors.infoSoft,
@@ -55,7 +53,6 @@ const PILLARS = [
   },
   {
     icon: BookOpen,
-    label: 'Conhecimento técnico',
     angle: 2.4,
     radius: 390,
     bg: colors.successSoft,
@@ -63,13 +60,20 @@ const PILLARS = [
   },
   {
     icon: Database,
-    label: 'Acesso a ingredientes',
     angle: 3.9,
     radius: 410,
     bg: '#F5F3FF',
     color: colors.pacViolet,
   },
-];
+] as const;
+
+type PillarItem = (typeof PILLAR_META)[number] & {label: string};
+
+const getPillars = (c: Copy): PillarItem[] =>
+  PILLAR_META.map((meta, i) => ({
+    ...meta,
+    label: c.scene02.orbitingPillars[i],
+  }));
 
 const CENTER = {x: 960, y: 460};
 
@@ -119,6 +123,7 @@ const BrandCore: React.FC<{scaleBoost?: number; compact?: boolean}> = ({
 }) => {
   const frame = useAuthoredFrame();
   const fps = AUTHOR_FPS;
+  const c = useCopy();
 
   const slam = spring({
     frame: frame - 10,
@@ -173,7 +178,7 @@ const BrandCore: React.FC<{scaleBoost?: number; compact?: boolean}> = ({
               marginTop: 4,
             }}
           >
-            ICONE
+            {c.brand.name}
           </div>
           <div
             style={{
@@ -185,7 +190,7 @@ const BrandCore: React.FC<{scaleBoost?: number; compact?: boolean}> = ({
               color: colors.primary,
             }}
           >
-            Inteligência para Gelato
+            {c.brand.tagline}
           </div>
         </>
       ) : null}
@@ -193,7 +198,7 @@ const BrandCore: React.FC<{scaleBoost?: number; compact?: boolean}> = ({
   );
 };
 
-const ConvergingPillar: React.FC<(typeof PILLARS)[number] & {index: number}> = ({
+const ConvergingPillar: React.FC<PillarItem & {index: number}> = ({
   icon: Icon,
   label,
   angle,
@@ -294,17 +299,23 @@ const ConvergingPillar: React.FC<(typeof PILLARS)[number] & {index: number}> = (
   );
 };
 
-const PLATFORM_MODULES = [
-  {icon: FlaskConical, label: 'Formulação', bg: colors.primarySoft, color: colors.primary},
-  {icon: Scale, label: 'Balanceamento', bg: colors.infoSoft, color: colors.info},
-  {icon: BookOpen, label: 'Conhecimento', bg: colors.successSoft, color: colors.success},
-  {icon: Database, label: 'Ingredientes', bg: '#F5F3FF', color: colors.pacViolet},
-  {icon: ShoppingCart, label: 'Compras', bg: colors.warningSoft, color: colors.warning},
-];
+const MODULE_META = [
+  {icon: FlaskConical, bg: colors.primarySoft, color: colors.primary},
+  {icon: Scale, bg: colors.infoSoft, color: colors.info},
+  {icon: BookOpen, bg: colors.successSoft, color: colors.success},
+  {icon: Database, bg: '#F5F3FF', color: colors.pacViolet},
+  {icon: ShoppingCart, bg: colors.warningSoft, color: colors.warning},
+] as const;
 
 const UnifiedPlatform: React.FC<{delay: number}> = ({delay}) => {
   const frame = useAuthoredFrame();
   const fps = AUTHOR_FPS;
+  const c = useCopy();
+
+  const modules = MODULE_META.map((meta, i) => ({
+    ...meta,
+    label: c.scene02.modules[i],
+  }));
 
   const rise = spring({
     frame: frame - delay,
@@ -351,7 +362,7 @@ const UnifiedPlatform: React.FC<{delay: number}> = ({delay}) => {
                 color: colors.textPrimary,
               }}
             >
-              ICONE
+              {c.brand.name}
             </span>
             <span
               style={{
@@ -361,7 +372,7 @@ const UnifiedPlatform: React.FC<{delay: number}> = ({delay}) => {
                 fontWeight: 500,
               }}
             >
-              Inteligência para Gelato
+              {c.brand.tagline}
             </span>
           </div>
         </div>
@@ -377,7 +388,7 @@ const UnifiedPlatform: React.FC<{delay: number}> = ({delay}) => {
             border: `1px solid ${colors.borderSoft}`,
           }}
         >
-          Uma única plataforma
+          {c.scene02.singlePlatform}
         </div>
       </div>
 
@@ -406,7 +417,7 @@ const UnifiedPlatform: React.FC<{delay: number}> = ({delay}) => {
               color: 'rgba(255,255,255,0.75)',
             }}
           >
-            Gelato artesanal & industrial
+            {c.scene02.platformHeroEyebrow}
           </span>
           <span
             style={{
@@ -417,7 +428,7 @@ const UnifiedPlatform: React.FC<{delay: number}> = ({delay}) => {
               lineHeight: 1.12,
             }}
           >
-            Tudo o que a produção precisa — reunido.
+            {c.scene02.platformHeroTitle}
           </span>
           <span
             style={{
@@ -426,7 +437,7 @@ const UnifiedPlatform: React.FC<{delay: number}> = ({delay}) => {
               color: 'rgba(255,255,255,0.82)',
             }}
           >
-            Formulação, balanceamento, conhecimento técnico e ingredientes.
+            {c.scene02.platformHeroSubtitle}
           </span>
         </div>
         <Img
@@ -444,7 +455,7 @@ const UnifiedPlatform: React.FC<{delay: number}> = ({delay}) => {
           padding: '0 20px 28px',
         }}
       >
-        {PLATFORM_MODULES.map((mod, i) => {
+        {modules.map((mod, i) => {
           const cardIn = spring({
             frame: frame - delay - 20 - i * 6,
             fps,
@@ -510,6 +521,8 @@ const UnifiedPlatform: React.FC<{delay: number}> = ({delay}) => {
 export const Scene02: React.FC = () => {
   const frame = useAuthoredFrame();
   const fps = AUTHOR_FPS;
+  const c = useCopy();
+  const pillars = getPillars(c);
 
   // Flash taupe no impacto inicial
   const flash = interpolate(frame, [0, 8, 28], [0.35, 0.12, 0], {
@@ -579,7 +592,7 @@ export const Scene02: React.FC = () => {
 
           {/* Pilares orbitando → convergindo */}
           {frame >= PILLARS_IN - 5
-            ? PILLARS.map((pillar, i) => (
+            ? pillars.map((pillar, i) => (
                 <ConvergingPillar key={pillar.label} {...pillar} index={i} />
               ))
             : null}
@@ -635,7 +648,7 @@ export const Scene02: React.FC = () => {
                 border: `1px solid ${colors.border}`,
               }}
             >
-              Reunindo as peças do gelato profissional…
+              {c.scene02.convergingCaption}
             </span>
           </div>
 
@@ -655,7 +668,7 @@ export const Scene02: React.FC = () => {
             }}
           >
             <AnimatedText
-              text="Uma única plataforma"
+              text={c.scene02.singlePlatform}
               delay={CONVERGE_END + 10}
               stagger={3}
               style={{
@@ -675,7 +688,7 @@ export const Scene02: React.FC = () => {
                 opacity: taglineIn,
               }}
             >
-              Desenvolvida para o gelato artesanal e industrial
+              {c.scene02.developedFor}
             </div>
           </div>
         </AbsoluteFill>

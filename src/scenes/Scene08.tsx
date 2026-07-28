@@ -18,22 +18,24 @@ import {Eyebrow} from '../components/Eyebrow';
 import {AnimatedText} from '../components/AnimatedText';
 import {colors, radius, shadows} from '../theme';
 import {fontBody} from '../fonts';
+import {useCopy} from '../i18n/LocaleContext';
 
 /**
  * Cena 8 — Fluxo automático: ingrediente → cálculo
  * nutricional → ficha técnica → rótulo.
  */
 
-const NODES = [
-  {icon: Database, label: 'Ingrediente', sub: 'dados de origem', bg: colors.primarySoft, color: colors.primary},
-  {icon: Calculator, label: 'Cálculo nutricional', sub: 'automático', bg: colors.successSoft, color: colors.success},
-  {icon: ClipboardList, label: 'Ficha técnica', sub: 'documento vivo', bg: colors.infoSoft, color: colors.info},
-  {icon: Tag, label: 'Rótulo', sub: 'pronto p/ rotulagem', bg: colors.warningSoft, color: colors.warning},
-];
+const NODE_META = [
+  {icon: Database, bg: colors.primarySoft, color: colors.primary},
+  {icon: Calculator, bg: colors.successSoft, color: colors.success},
+  {icon: ClipboardList, bg: colors.infoSoft, color: colors.info},
+  {icon: Tag, bg: colors.warningSoft, color: colors.warning},
+] as const;
 
+const NODE_COUNT = NODE_META.length;
 const NODE_W = 380;
 const GAP = 70;
-const TOTAL_W = NODES.length * NODE_W + (NODES.length - 1) * GAP;
+const TOTAL_W = NODE_COUNT * NODE_W + (NODE_COUNT - 1) * GAP;
 const START_X = (1920 - TOTAL_W) / 2;
 const NODE_Y = 480;
 
@@ -42,8 +44,15 @@ const nodeDelay = (i: number) => 20 + i * 55;
 export const Scene08: React.FC = () => {
   const frame = useAuthoredFrame();
   const fps = AUTHOR_FPS;
+  const c = useCopy();
 
-  const flowStart = nodeDelay(NODES.length - 1) + 30;
+  const nodes = NODE_META.map((meta, i) => ({
+    ...meta,
+    label: c.scene08.nodes[i].label,
+    sub: c.scene08.nodes[i].sub,
+  }));
+
+  const flowStart = nodeDelay(NODE_COUNT - 1) + 30;
   const pulseProgress =
     frame > flowStart ? ((frame - flowStart) % 110) / 110 : -1;
   const pulseX =
@@ -56,10 +65,10 @@ export const Scene08: React.FC = () => {
     <SceneBackground>
       <AbsoluteFill style={{alignItems: 'center', paddingTop: 48, gap: 14}}>
         <Eyebrow delay={2} fontSize={38}>
-          Do ingrediente ao rótulo
+          {c.scene08.eyebrow}
         </Eyebrow>
         <AnimatedText
-          text="Os dados fluem automaticamente entre receita e documentos"
+          text={c.scene08.subtitle}
           delay={12}
           stagger={2}
           style={{
@@ -73,7 +82,7 @@ export const Scene08: React.FC = () => {
         />
       </AbsoluteFill>
 
-      {NODES.slice(0, -1).map((_, i) => {
+      {nodes.slice(0, -1).map((_, i) => {
         const x0 = START_X + (i + 1) * NODE_W + i * GAP;
         const draw = spring({
           frame: frame - nodeDelay(i) - 26,
@@ -115,7 +124,7 @@ export const Scene08: React.FC = () => {
         />
       ) : null}
 
-      {NODES.map((node, i) => {
+      {nodes.map((node, i) => {
         const delay = nodeDelay(i);
         const pop = spring({
           frame: frame - delay,
@@ -234,7 +243,7 @@ export const Scene08: React.FC = () => {
             }),
           }}
         >
-          Menos trabalho manual. Coerência entre a receita e seus documentos.
+          {c.scene08.footer}
         </div>
       </AbsoluteFill>
     </SceneBackground>

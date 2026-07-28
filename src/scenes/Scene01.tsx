@@ -3,9 +3,8 @@ import {
   AbsoluteFill,
   interpolate,
   spring,
-  useVideoConfig,
 } from 'remotion';
-import {AUTHOR_FPS, T, useAuthoredFrame} from '../timeline';
+import {AUTHOR_FPS, useAuthoredFrame} from '../timeline';
 import {
   BookOpen,
   Calculator,
@@ -22,6 +21,8 @@ import {SceneBackground} from '../components/SceneBackground';
 import {AnimatedText} from '../components/AnimatedText';
 import {colors, radius, shadows} from '../theme';
 import {fontBody, fontDisplay} from '../fonts';
+import {useCopy} from '../i18n/LocaleContext';
+import type {Copy} from '../i18n/copy';
 
 /**
  * Cena 1 — O problema do gelato profissional.
@@ -37,105 +38,99 @@ const WORDS_IN = 240;
 const WORDS_OUT = 320;
 const QUESTION_IN = 340;
 
-/** Três pilares do craft — aparecem calmos no início. */
-const PILLARS = [
-  {icon: BookOpen, label: 'Conhecimento', tint: colors.primary, soft: colors.primarySoft},
-  {icon: Crosshair, label: 'Precisão', tint: colors.info, soft: colors.infoSoft},
-  {icon: Target, label: 'Controle', tint: colors.success, soft: colors.successSoft},
-];
+const PILLAR_META = [
+  {icon: BookOpen, tint: colors.primary, soft: colors.primarySoft},
+  {icon: Crosshair, tint: colors.info, soft: colors.infoSoft},
+  {icon: Target, tint: colors.success, soft: colors.successSoft},
+] as const;
 
-/**
- * Documentos que “explodem” do centro — cada um é um tipo
- * de informação espalhada no mundo real.
- */
-const DOCS = [
-  {
-    kind: 'spreadsheet' as const,
-    label: 'Planilha',
-    x: 180,
-    y: 160,
-    rot: -11,
-    delay: 0,
-    phase: 0.4,
-  },
-  {
-    kind: 'techsheet' as const,
-    label: 'Ficha técnica',
-    x: 1420,
-    y: 140,
-    rot: 8,
-    delay: 10,
-    phase: 1.2,
-  },
-  {
-    kind: 'notes' as const,
-    label: 'Anotações',
-    x: 120,
-    y: 620,
-    rot: 6,
-    delay: 18,
-    phase: 2.1,
-  },
-  {
-    kind: 'calculator' as const,
-    label: 'Cálculos manuais',
-    x: 1520,
-    y: 640,
-    rot: -7,
-    delay: 26,
-    phase: 3.0,
-  },
+type PillarItem = (typeof PILLAR_META)[number] & {label: string};
+
+const getPillars = (c: Copy): PillarItem[] =>
+  PILLAR_META.map((meta, i) => ({
+    ...meta,
+    label: c.scene01.pillars[i],
+  }));
+
+type DocKind =
+  | 'spreadsheet'
+  | 'techsheet'
+  | 'notes'
+  | 'calculator'
+  | 'system'
+  | 'clipboard'
+  | 'sticky';
+
+type DocItem = {
+  kind: DocKind;
+  label: string;
+  x: number;
+  y: number;
+  rot: number;
+  delay: number;
+  phase: number;
+  systemTitle?: string;
+  systemTint?: string;
+};
+
+const DOC_META = [
+  {kind: 'spreadsheet' as const, x: 180, y: 160, rot: -11, delay: 0, phase: 0.4},
+  {kind: 'techsheet' as const, x: 1420, y: 140, rot: 8, delay: 10, phase: 1.2},
+  {kind: 'notes' as const, x: 120, y: 620, rot: 6, delay: 18, phase: 2.1},
+  {kind: 'calculator' as const, x: 1520, y: 640, rot: -7, delay: 26, phase: 3.0},
   {
     kind: 'system' as const,
-    label: 'Sistema A',
     x: 520,
     y: 80,
     rot: -3,
     delay: 34,
     phase: 3.8,
-    systemTitle: 'ERP · Estoque',
     systemTint: colors.info,
+    systemTitleIndex: 0 as const,
   },
   {
     kind: 'system' as const,
-    label: 'Sistema B',
     x: 1180,
     y: 720,
     rot: 4,
     delay: 42,
     phase: 4.6,
-    systemTitle: 'Compras · Excel',
     systemTint: colors.warning,
+    systemTitleIndex: 1 as const,
   },
-  {
-    kind: 'clipboard' as const,
-    label: 'Receita impressa',
-    x: 1600,
-    y: 380,
-    rot: 12,
-    delay: 50,
-    phase: 5.2,
-  },
-  {
-    kind: 'sticky' as const,
-    label: 'Post-it',
-    x: 340,
-    y: 820,
-    rot: -14,
-    delay: 58,
-    phase: 0.8,
-  },
+  {kind: 'clipboard' as const, x: 1600, y: 380, rot: 12, delay: 50, phase: 5.2},
+  {kind: 'sticky' as const, x: 340, y: 820, rot: -14, delay: 58, phase: 0.8},
 ];
 
-const TASK_WORDS = [
-  {word: 'Formular.', x: 280, y: 280, docIndex: 0},
-  {word: 'Balancear.', x: 1480, y: 260, docIndex: 3},
-  {word: 'Corrigir.', x: 260, y: 720, docIndex: 2},
-  {word: 'Documentar.', x: 1500, y: 700, docIndex: 1},
-  {word: 'Comprar.', x: 960, y: 860, docIndex: 5},
+const getDocs = (c: Copy): DocItem[] =>
+  DOC_META.map((meta, i) => {
+    const {systemTitleIndex, ...rest} = meta as typeof meta & {
+      systemTitleIndex?: 0 | 1;
+    };
+    return {
+      ...rest,
+      label: c.scene01.docLabels[i],
+      ...(systemTitleIndex !== undefined
+        ? {systemTitle: c.scene01.systemTitles[systemTitleIndex]}
+        : {}),
+    };
+  });
+
+const TASK_WORD_META = [
+  {x: 280, y: 280, docIndex: 0},
+  {x: 1480, y: 260, docIndex: 3},
+  {x: 260, y: 720, docIndex: 2},
+  {x: 1500, y: 700, docIndex: 1},
+  {x: 960, y: 860, docIndex: 5},
 ];
 
-const Pillar: React.FC<(typeof PILLARS)[number] & {index: number; fadeOut: number}> = ({
+const getTaskWords = (c: Copy) =>
+  TASK_WORD_META.map((meta, i) => ({
+    ...meta,
+    word: c.scene01.kinetic[i],
+  }));
+
+const Pillar: React.FC<PillarItem & {index: number; fadeOut: number}> = ({
   icon: Icon,
   label,
   tint,
@@ -198,11 +193,10 @@ const Pillar: React.FC<(typeof PILLARS)[number] & {index: number; fadeOut: numbe
 /** Mini planilha com células “vivas”. */
 const SpreadsheetCard: React.FC = () => {
   const frame = useAuthoredFrame();
+  const c = useCopy();
   const cells = [
-    ['Ingrediente', 'g', '%'],
-    ['Leite', '520', '52'],
-    ['Açúcar', '180', '18'],
-    ['???', '??', '??'],
+    c.scene01.spreadsheetHeaders,
+    ...c.scene01.spreadsheetRows,
   ];
 
   return (
@@ -228,7 +222,7 @@ const SpreadsheetCard: React.FC = () => {
       >
         <FileSpreadsheet size={20} color={colors.success} />
         <span style={{fontFamily: fontBody, fontWeight: 700, fontSize: 16, color: colors.textPrimary}}>
-          receita_v3.xlsx
+          {c.scene01.spreadsheetFile}
         </span>
       </div>
       {cells.map((row, ri) => (
@@ -270,75 +264,79 @@ const SpreadsheetCard: React.FC = () => {
 };
 
 /** Ficha técnica solta. */
-const TechSheetCard: React.FC = () => (
-  <div
-    style={{
-      width: 250,
-      borderRadius: radius.md,
-      backgroundColor: colors.surface,
-      border: `1.5px solid ${colors.border}`,
-      boxShadow: shadows.shell,
-      padding: 16,
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 10,
-    }}
-  >
-    <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
-      <FileText size={22} color={colors.warning} />
-      <span style={{fontFamily: fontBody, fontWeight: 700, fontSize: 16, color: colors.textPrimary}}>
-        Ficha técnica
-      </span>
-    </div>
-    {[0.95, 0.7, 0.85, 0.55, 0.75].map((w, i) => (
-      <div
-        key={i}
-        style={{
-          height: 8,
-          width: `${w * 100}%`,
-          borderRadius: 4,
-          backgroundColor: i === 0 ? colors.warningSoft : colors.borderSoft,
-        }}
-      />
-    ))}
+const TechSheetCard: React.FC = () => {
+  const c = useCopy();
+  return (
     <div
       style={{
-        marginTop: 4,
-        fontFamily: fontBody,
-        fontSize: 13,
-        color: colors.textMuted,
-        fontStyle: 'italic',
+        width: 250,
+        borderRadius: radius.md,
+        backgroundColor: colors.surface,
+        border: `1.5px solid ${colors.border}`,
+        boxShadow: shadows.shell,
+        padding: 16,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 10,
       }}
     >
-      versão impressa · desatualizada
+      <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
+        <FileText size={22} color={colors.warning} />
+        <span style={{fontFamily: fontBody, fontWeight: 700, fontSize: 16, color: colors.textPrimary}}>
+          {c.scene01.techSheetTitle}
+        </span>
+      </div>
+      {[0.95, 0.7, 0.85, 0.55, 0.75].map((w, i) => (
+        <div
+          key={i}
+          style={{
+            height: 8,
+            width: `${w * 100}%`,
+            borderRadius: 4,
+            backgroundColor: i === 0 ? colors.warningSoft : colors.borderSoft,
+          }}
+        />
+      ))}
+      <div
+        style={{
+          marginTop: 4,
+          fontFamily: fontBody,
+          fontSize: 13,
+          color: colors.textMuted,
+          fontStyle: 'italic',
+        }}
+      >
+        {c.scene01.techSheetSubtitle}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 /** Bloco de anotações / caderno. */
-const NotesCard: React.FC = () => (
-  <div
-    style={{
-      width: 240,
-      borderRadius: radius.md,
-      backgroundColor: '#FFFBEB',
-      border: `1.5px solid ${colors.warning}`,
-      boxShadow: shadows.md,
-      padding: 16,
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 8,
-      transform: 'rotate(-2deg)',
-    }}
-  >
-    <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
-      <NotebookPen size={20} color={colors.warning} />
-      <span style={{fontFamily: fontBody, fontWeight: 700, fontSize: 15, color: colors.textPrimary}}>
-        Caderno da produção
-      </span>
-    </div>
-    {['PAC alto — conferir', 'trocar dextrose?', 'temp. ????', 'pedir pistache'].map(
-      (line, i) => (
+const NotesCard: React.FC = () => {
+  const c = useCopy();
+  return (
+    <div
+      style={{
+        width: 240,
+        borderRadius: radius.md,
+        backgroundColor: '#FFFBEB',
+        border: `1.5px solid ${colors.warning}`,
+        boxShadow: shadows.md,
+        padding: 16,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 8,
+        transform: 'rotate(-2deg)',
+      }}
+    >
+      <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
+        <NotebookPen size={20} color={colors.warning} />
+        <span style={{fontFamily: fontBody, fontWeight: 700, fontSize: 15, color: colors.textPrimary}}>
+          {c.scene01.notesTitle}
+        </span>
+      </div>
+      {c.scene01.notesLines.map((line, i) => (
         <div
           key={i}
           style={{
@@ -351,14 +349,15 @@ const NotesCard: React.FC = () => (
         >
           {line}
         </div>
-      ),
-    )}
-  </div>
-);
+      ))}
+    </div>
+  );
+};
 
 /** Calculadora / balanço manual. */
 const CalculatorCard: React.FC = () => {
   const frame = useAuthoredFrame();
+  const c = useCopy();
   const flash = 0.5 + 0.5 * Math.sin(frame / 8);
 
   return (
@@ -378,7 +377,7 @@ const CalculatorCard: React.FC = () => {
       <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
         <Calculator size={20} color={colors.info} />
         <span style={{fontFamily: fontBody, fontWeight: 700, fontSize: 15, color: colors.textPrimary}}>
-          Balanço manual
+          {c.scene01.calculatorTitle}
         </span>
       </div>
       <div
@@ -394,7 +393,7 @@ const CalculatorCard: React.FC = () => {
           opacity: 0.7 + flash * 0.3,
         }}
       >
-        ERR
+        {c.scene01.calculatorError}
       </div>
       <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6}}>
         {['7', '8', '9', '4', '5', '6', '+', '=', 'C'].map((k) => (
@@ -422,113 +421,122 @@ const CalculatorCard: React.FC = () => {
 };
 
 /** Janela de “sistema diferente”. */
-const SystemWindow: React.FC<{title: string; tint: string}> = ({title, tint}) => (
-  <div
-    style={{
-      width: 260,
-      borderRadius: radius.md,
-      backgroundColor: colors.surface,
-      border: `1.5px solid ${colors.border}`,
-      boxShadow: shadows.shell,
-      overflow: 'hidden',
-    }}
-  >
+const SystemWindow: React.FC<{title: string; tint: string}> = ({title, tint}) => {
+  const c = useCopy();
+  return (
     <div
       style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        padding: '8px 12px',
-        backgroundColor: colors.surfaceMuted,
-        borderBottom: `1px solid ${colors.borderSoft}`,
+        width: 260,
+        borderRadius: radius.md,
+        backgroundColor: colors.surface,
+        border: `1.5px solid ${colors.border}`,
+        boxShadow: shadows.shell,
+        overflow: 'hidden',
       }}
     >
-      <div style={{display: 'flex', gap: 5}}>
-        {['#EF4444', '#F59E0B', '#22C55E'].map((c) => (
-          <div key={c} style={{width: 10, height: 10, borderRadius: '50%', backgroundColor: c}} />
-        ))}
-      </div>
-      <span style={{fontFamily: fontBody, fontWeight: 600, fontSize: 14, color: tint}}>
-        {title}
-      </span>
-    </div>
-    <div style={{padding: 14, display: 'flex', flexDirection: 'column', gap: 8}}>
-      <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
-        <Layers size={18} color={tint} />
-        <span style={{fontFamily: fontBody, fontSize: 14, color: colors.textMuted}}>
-          sem integração com a receita
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          padding: '8px 12px',
+          backgroundColor: colors.surfaceMuted,
+          borderBottom: `1px solid ${colors.borderSoft}`,
+        }}
+      >
+        <div style={{display: 'flex', gap: 5}}>
+          {['#EF4444', '#F59E0B', '#22C55E'].map((dot) => (
+            <div key={dot} style={{width: 10, height: 10, borderRadius: '50%', backgroundColor: dot}} />
+          ))}
+        </div>
+        <span style={{fontFamily: fontBody, fontWeight: 600, fontSize: 14, color: tint}}>
+          {title}
         </span>
       </div>
-      {[0.9, 0.6, 0.75].map((w, i) => (
-        <div
-          key={i}
-          style={{
-            height: 10,
-            width: `${w * 100}%`,
-            borderRadius: 5,
-            backgroundColor: colors.borderSoft,
-          }}
-        />
-      ))}
+      <div style={{padding: 14, display: 'flex', flexDirection: 'column', gap: 8}}>
+        <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
+          <Layers size={18} color={tint} />
+          <span style={{fontFamily: fontBody, fontSize: 14, color: colors.textMuted}}>
+            {c.scene01.systemNoIntegration}
+          </span>
+        </div>
+        {[0.9, 0.6, 0.75].map((w, i) => (
+          <div
+            key={i}
+            style={{
+              height: 10,
+              width: `${w * 100}%`,
+              borderRadius: 5,
+              backgroundColor: colors.borderSoft,
+            }}
+          />
+        ))}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
-const ClipboardCard: React.FC = () => (
-  <div
-    style={{
-      width: 200,
-      borderRadius: radius.md,
-      backgroundColor: colors.surface,
-      border: `1.5px solid ${colors.border}`,
-      boxShadow: shadows.md,
-      padding: 16,
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 10,
-      alignItems: 'center',
-    }}
-  >
-    <ClipboardList size={36} color={colors.primaryMuted} strokeWidth={1.7} />
-    <span style={{fontFamily: fontBody, fontWeight: 700, fontSize: 16, color: colors.textPrimary}}>
-      Receita impressa
-    </span>
-    <span style={{fontFamily: fontBody, fontSize: 13, color: colors.textMuted, textAlign: 'center'}}>
-      última atualização desconhecida
-    </span>
-  </div>
-);
-
-const StickyCard: React.FC = () => (
-  <div
-    style={{
-      width: 160,
-      height: 150,
-      backgroundColor: '#FEF08A',
-      boxShadow: shadows.md,
-      padding: 14,
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 8,
-      transform: 'rotate(-8deg)',
-    }}
-  >
-    <StickyNote size={22} color={colors.warning} />
-    <span
+const ClipboardCard: React.FC = () => {
+  const c = useCopy();
+  return (
+    <div
       style={{
-        fontFamily: fontBody,
-        fontWeight: 600,
-        fontSize: 16,
-        color: colors.textPrimary,
-        lineHeight: 1.3,
+        width: 200,
+        borderRadius: radius.md,
+        backgroundColor: colors.surface,
+        border: `1.5px solid ${colors.border}`,
+        boxShadow: shadows.md,
+        padding: 16,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 10,
+        alignItems: 'center',
       }}
     >
-      lembrar de conferir POD!!
-    </span>
-  </div>
-);
+      <ClipboardList size={36} color={colors.primaryMuted} strokeWidth={1.7} />
+      <span style={{fontFamily: fontBody, fontWeight: 700, fontSize: 16, color: colors.textPrimary}}>
+        {c.scene01.clipboardTitle}
+      </span>
+      <span style={{fontFamily: fontBody, fontSize: 13, color: colors.textMuted, textAlign: 'center'}}>
+        {c.scene01.clipboardSubtitle}
+      </span>
+    </div>
+  );
+};
 
-const DocBody: React.FC<{doc: (typeof DOCS)[number]}> = ({doc}) => {
+const StickyCard: React.FC = () => {
+  const c = useCopy();
+  return (
+    <div
+      style={{
+        width: 160,
+        height: 150,
+        backgroundColor: '#FEF08A',
+        boxShadow: shadows.md,
+        padding: 14,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 8,
+        transform: 'rotate(-8deg)',
+      }}
+    >
+      <StickyNote size={22} color={colors.warning} />
+      <span
+        style={{
+          fontFamily: fontBody,
+          fontWeight: 600,
+          fontSize: 16,
+          color: colors.textPrimary,
+          lineHeight: 1.3,
+        }}
+      >
+        {c.scene01.stickyNote}
+      </span>
+    </div>
+  );
+};
+
+const DocBody: React.FC<{doc: DocItem}> = ({doc}) => {
   switch (doc.kind) {
     case 'spreadsheet':
       return <SpreadsheetCard />;
@@ -548,7 +556,7 @@ const DocBody: React.FC<{doc: (typeof DOCS)[number]}> = ({doc}) => {
 };
 
 /** Documento voando do centro para a periferia. */
-const FlyingDoc: React.FC<{doc: (typeof DOCS)[number]; index: number}> = ({doc, index}) => {
+const FlyingDoc: React.FC<{doc: DocItem; index: number}> = ({doc, index}) => {
   const frame = useAuthoredFrame();
   const fps = AUTHOR_FPS;
 
@@ -627,7 +635,7 @@ const FlyingDoc: React.FC<{doc: (typeof DOCS)[number]; index: number}> = ({doc, 
 };
 
 /** Linhas quebradas do centro até cada documento. */
-const BrokenLinks: React.FC = () => {
+const BrokenLinks: React.FC<{docs: DocItem[]}> = ({docs}) => {
   const frame = useAuthoredFrame();
 
   return (
@@ -636,7 +644,7 @@ const BrokenLinks: React.FC = () => {
       height={1080}
       style={{position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 2}}
     >
-      {DOCS.map((doc, i) => {
+      {docs.map((doc, i) => {
         const delay = CHAOS_START + doc.delay + 8;
         const draw = interpolate(frame - delay, [0, 18], [0, 1], {
           extrapolateLeft: 'clamp',
@@ -685,6 +693,7 @@ const BrokenLinks: React.FC = () => {
 const RecipeCore: React.FC = () => {
   const frame = useAuthoredFrame();
   const fps = AUTHOR_FPS;
+  const c = useCopy();
 
   const enter = spring({
     frame: frame - RECIPE_IN,
@@ -756,7 +765,7 @@ const RecipeCore: React.FC = () => {
             textAlign: 'center',
           }}
         >
-          Receita profissional
+          {c.scene01.recipeTitle}
         </span>
         <span
           style={{
@@ -766,10 +775,10 @@ const RecipeCore: React.FC = () => {
             textAlign: 'center',
           }}
         >
-          Gelato artesanal & industrial
+          {c.scene01.recipeSubtitle}
         </span>
         <div style={{display: 'flex', flexDirection: 'column', gap: 12, marginTop: 6}}>
-          {['Composição', 'Parâmetros técnicos', 'Documentação'].map((row, i) => {
+          {c.scene01.recipeRows.map((row, i) => {
             const rowIn = interpolate(frame - RECIPE_IN - 14 - i * 8, [0, 10], [0, 1], {
               extrapolateLeft: 'clamp',
               extrapolateRight: 'clamp',
@@ -795,7 +804,7 @@ const RecipeCore: React.FC = () => {
                   textDecoration: cracked ? 'line-through' : 'none',
                 }}
               >
-                {cracked ? `${row} — espalhado` : row}
+                {cracked ? `${row}${c.scene01.recipeRowCrackedSuffix}` : row}
               </div>
             );
           })}
@@ -808,6 +817,10 @@ const RecipeCore: React.FC = () => {
 export const Scene01: React.FC = () => {
   const frame = useAuthoredFrame();
   const fps = AUTHOR_FPS;
+  const c = useCopy();
+  const pillars = getPillars(c);
+  const docs = getDocs(c);
+  const taskWords = getTaskWords(c);
 
   const idealFade = interpolate(frame, [IDEAL_OUT - 16, IDEAL_OUT + 10], [0, 1], {
     extrapolateLeft: 'clamp',
@@ -851,10 +864,10 @@ export const Scene01: React.FC = () => {
               }),
             }}
           >
-            Desenvolver uma receita profissional exige
+            {c.scene01.introLead}
           </div>
           <div style={{display: 'flex', gap: 64}}>
-            {PILLARS.map((pillar, i) => (
+            {pillars.map((pillar, i) => (
               <Pillar key={pillar.label} {...pillar} index={i} fadeOut={idealFade} />
             ))}
           </div>
@@ -863,9 +876,9 @@ export const Scene01: React.FC = () => {
 
       {/* Fase 2 — receita central + explosão de documentos */}
       {frame >= RECIPE_IN - 5 ? <RecipeCore /> : null}
-      {frame >= CHAOS_START ? <BrokenLinks /> : null}
+      {frame >= CHAOS_START ? <BrokenLinks docs={docs} /> : null}
       {frame >= CHAOS_START
-        ? DOCS.map((doc, i) => <FlyingDoc key={i} doc={doc} index={i} />)
+        ? docs.map((doc, i) => <FlyingDoc key={i} doc={doc} index={i} />)
         : null}
 
       {/* Legenda do caos */}
@@ -898,7 +911,7 @@ export const Scene01: React.FC = () => {
               maxWidth: 1400,
             }}
           >
-            Informações espalhadas entre planilhas, fichas, anotações e sistemas diferentes.
+            {c.scene01.chaosCaption}
           </div>
         </AbsoluteFill>
       ) : null}
@@ -906,7 +919,7 @@ export const Scene01: React.FC = () => {
       {/* Fase 3 — tarefas tentando alcançar documentos (texto cinético espacial) */}
       {frame >= WORDS_IN && frame < QUESTION_IN ? (
         <AbsoluteFill style={{opacity: wordsOpacity, zIndex: 15}}>
-          {TASK_WORDS.map((item, i) => {
+          {taskWords.map((item, i) => {
             const delay = WORDS_IN + i * 18;
             const pop = spring({
               frame: frame - delay,
@@ -960,7 +973,7 @@ export const Scene01: React.FC = () => {
           }}
         >
           <AnimatedText
-            text="Por que tudo isso precisa estar separado?"
+            text={c.scene01.whySeparated}
             delay={QUESTION_IN}
             stagger={4}
             style={{
@@ -983,7 +996,7 @@ export const Scene01: React.FC = () => {
               }),
             }}
           >
-            Conhecimento, precisão e controle — espalhados em pedaços.
+            {c.scene01.supportingLine}
           </div>
         </div>
       </AbsoluteFill>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {
   AbsoluteFill,
   interpolate,
@@ -6,7 +6,7 @@ import {
   spring,
   useCurrentFrame,
 } from 'remotion';
-import {AUTHOR_FPS, DUR, VO_CUTS, sec, useAuthoredFrame} from '../timeline';
+import {AUTHOR_FPS, getScene05MarksAbs, sec, useAuthoredFrame, VO_CUTS} from '../timeline';
 import {
   BadgeDollarSign,
   Building2,
@@ -28,43 +28,58 @@ import {Pill} from '../components/Pill';
 import {GaugeArc, GaugeZone} from '../components/GaugeArc';
 import {colors, radius, shadows} from '../theme';
 import {fontBody, fontDisplay} from '../fonts';
+import {useCopy, useLocale} from '../i18n/LocaleContext';
+import {useTimeline} from '../i18n/TimelineContext';
+import type {Locale} from '../i18n/types';
 
 /**
- * Cena 5 — Workbench de receita em beats fullscreen, sync VO:
- * 65.88 config → 87.88 gauges → 104.88 interpretação → 110.48 explicação
- * → 119.08 nutrição (aba) → 128.88 destaque etiqueta/ficha → 139.28
+ * Cena 5 — Workbench de receita em beats fullscreen, sync VO.
+ * Marks absolutos por locale: S5_MARKS_PT / S5_MARKS_IT em timeline.ts
  */
 
-const S5_START = VO_CUTS.scene05[0];
-const S5_MARK = {
-  compositionEnd: 87.88,
-  gaugesEnd: 104.88, // “interpretação / faixa ideal”
-  resumoEnd: 110.48, // “aba explicação”
-  explanationEnd: 119.08, // “Valores Nutricionais”
-  /** “E direto dessa mesma tela…” — destaque nos CTAs */
-  ctaHighlight: 128.88,
-  nutritionEnd: VO_CUTS.scene05[1],
-} as const;
+/** Marcas absolutas do VO do locale + bounds da scene05. */
+export const getScene05Marks = (
+  locale: Locale,
+  voCuts: typeof VO_CUTS,
+) => {
+  const abs = getScene05MarksAbs(locale);
+  return {
+    start: voCuts.scene05[0],
+    compositionEnd: abs.compositionEnd,
+    gaugesEnd: abs.gaugesEnd,
+    resumoEnd: abs.resumoEnd,
+    explanationEnd: abs.explanationEnd,
+    ctaHighlight: abs.ctaHighlight,
+    nutritionEnd: voCuts.scene05[1],
+  };
+};
 
-/** Durações em frames reais (60fps), alinhadas ao VO. */
-export const BEAT = {
-  composition: sec(S5_MARK.compositionEnd) - sec(S5_START),
-  gauges: sec(S5_MARK.gaugesEnd) - sec(S5_MARK.compositionEnd),
-  resumo: sec(S5_MARK.resumoEnd) - sec(S5_MARK.gaugesEnd),
-  explanation: sec(S5_MARK.explanationEnd) - sec(S5_MARK.resumoEnd),
-  nutrition: sec(S5_MARK.nutritionEnd) - sec(S5_MARK.explanationEnd),
-} as const;
+/** Durações em frames reais (60fps), alinhadas ao VO do locale. */
+export const getScene05Beat = (
+  locale: Locale,
+  voCuts: typeof VO_CUTS,
+) => {
+  const m = getScene05Marks(locale, voCuts);
+  return {
+    composition: sec(m.compositionEnd) - sec(m.start),
+    gauges: sec(m.gaugesEnd) - sec(m.compositionEnd),
+    resumo: sec(m.resumoEnd) - sec(m.gaugesEnd),
+    explanation: sec(m.explanationEnd) - sec(m.resumoEnd),
+    nutrition: sec(m.nutritionEnd) - sec(m.explanationEnd),
+  };
+};
 
-/** Frame real (60fps) dentro do beat Nutrição em que os CTAs ganham destaque. */
-const CTA_HIGHLIGHT_AT =
-  sec(S5_MARK.ctaHighlight) - sec(S5_MARK.explanationEnd);
-
-export const SCENE05_TOTAL =
-  BEAT.composition +
-  BEAT.gauges +
-  BEAT.resumo +
-  BEAT.explanation +
-  BEAT.nutrition;
+const useScene05Timing = () => {
+  const locale = useLocale();
+  const {voCuts, dur} = useTimeline();
+  return useMemo(() => {
+    const marks = getScene05Marks(locale, voCuts);
+    const beat = getScene05Beat(locale, voCuts);
+    const ctaHighlightAt =
+      sec(marks.ctaHighlight) - sec(marks.explanationEnd);
+    return {beat, ctaHighlightAt, scene05Dur: dur.scene05};
+  }, [locale, voCuts, dur]);
+};
 
 const ZONES: GaugeZone[] = [
   {from: 0, to: 0.2, color: colors.gaugeRed},
@@ -76,224 +91,67 @@ const ZONES: GaugeZone[] = [
 
 type GaugeStatus = 'perfect' | 'technical' | 'out';
 
-const STATUS_STYLE = {
-  perfect: {label: 'Ótimo', bg: colors.successSoft, color: colors.success},
-  technical: {label: 'Bom', bg: colors.warningSoft, color: colors.warning},
-  out: {label: 'Atenção', bg: colors.dangerSoft, color: colors.gaugeRed},
+const STATUS_COLORS = {
+  perfect: {bg: colors.successSoft, color: colors.success},
+  technical: {bg: colors.warningSoft, color: colors.warning},
+  out: {bg: colors.dangerSoft, color: colors.gaugeRed},
 } as const;
 
-const GAUGES: {
-  label: string;
-  value: string;
-  fraction: number;
-  status: GaugeStatus;
-}[] = [
-  {label: 'Água', value: '64%', fraction: 0.48, status: 'perfect'},
-  {label: 'Açúcares Totais', value: '22%', fraction: 0.52, status: 'perfect'},
-  {label: 'Gordura Totais', value: '8%', fraction: 0.42, status: 'perfect'},
-  {label: 'Proteínas', value: '4,2%', fraction: 0.45, status: 'perfect'},
-  {label: 'Sólidos Totais', value: '38%', fraction: 0.5, status: 'perfect'},
-  {label: 'PAC', value: '28', fraction: 0.55, status: 'perfect'},
-  {label: 'POD', value: '18', fraction: 0.5, status: 'perfect'},
-  {label: 'Overrun final', value: '28%', fraction: 0.48, status: 'perfect'},
-  {label: 'Cristalização', value: '88%', fraction: 0.46, status: 'perfect'},
-  {label: 'Cremosidade', value: '74%', fraction: 0.5, status: 'perfect'},
-  {label: 'Lactose', value: '5%', fraction: 0.4, status: 'perfect'},
-  {label: 'Índice glicêmico', value: '42%', fraction: 0.38, status: 'technical'},
+/** Fração no arco + status — labels/values vêm de copy. */
+const GAUGE_META: {fraction: number; status: GaugeStatus}[] = [
+  {fraction: 0.48, status: 'perfect'},
+  {fraction: 0.52, status: 'perfect'},
+  {fraction: 0.42, status: 'perfect'},
+  {fraction: 0.45, status: 'perfect'},
+  {fraction: 0.5, status: 'perfect'},
+  {fraction: 0.55, status: 'perfect'},
+  {fraction: 0.5, status: 'perfect'},
+  {fraction: 0.48, status: 'perfect'},
+  {fraction: 0.46, status: 'perfect'},
+  {fraction: 0.5, status: 'perfect'},
+  {fraction: 0.4, status: 'perfect'},
+  {fraction: 0.38, status: 'technical'},
 ];
 
-const COMPOSITION_ROWS = [
-  {
-    name: 'Leite integral',
-    scope: 'global' as const,
-    supplier: 'Laticínios Serra',
-    pricePerKg: 'R$ 4,80',
-    priceInRecipe: 'R$ 2,50',
-    qty: '520 g',
-  },
-  {
-    name: 'Creme de leite 35%',
-    scope: 'global' as const,
-    supplier: 'Laticínios Serra',
-    pricePerKg: 'R$ 18,90',
-    priceInRecipe: 'R$ 3,40',
-    qty: '180 g',
-  },
-  {
-    name: 'Sacarose',
-    scope: 'workspace' as const,
-    supplier: 'Doce Brasil',
-    pricePerKg: 'R$ 5,20',
-    priceInRecipe: 'R$ 0,99',
-    qty: '190 g',
-  },
-  {
-    name: 'Pistache puro',
-    scope: 'workspace' as const,
-    supplier: 'Nuts & Co',
-    pricePerKg: 'R$ 186,00',
-    priceInRecipe: 'R$ 14,88',
-    qty: '80 g',
-  },
-  {
-    name: 'Leite em pó desnatado',
-    scope: 'global' as const,
-    supplier: 'Laticínios Serra',
-    pricePerKg: 'R$ 32,00',
-    priceInRecipe: 'R$ 0,80',
-    qty: '25 g',
-  },
-  {
-    name: 'Neutro base branca',
-    scope: 'global' as const,
-    supplier: 'ICone Neutros',
-    pricePerKg: 'R$ 98,00',
-    priceInRecipe: 'R$ 0,49',
-    qty: '5 g',
-  },
-];
+const COMPOSITION_SCOPES = [
+  'global',
+  'global',
+  'workspace',
+  'workspace',
+  'global',
+  'global',
+] as const;
 
-const FOOTER_CARDS = [
-  {icon: Scale, label: 'Peso Total', value: '1.000 g'},
-  {icon: Calculator, label: 'Custo Total na Receita', value: 'R$ 23,06'},
-  {icon: BadgeDollarSign, label: 'Custo/kg', value: 'R$ 23,06/Kg'},
-  {icon: Package, label: 'Alvo de produção', value: '5.000 g'},
-];
+const FOOTER_ICONS = [Scale, Calculator, BadgeDollarSign, Package] as const;
 
-const EXPLANATION_BLOCKS: {
-  text: string;
-  /** palavra/trecho em destaque */
-  emphasis: string;
-  /** início relativo (frames 30fps) no beat Explicação */
-  at: number;
-}[] = [
-  {
-    text: 'Esta receita está bem equilibrada para um gelato de pistache.',
-    emphasis: 'equilibrada',
-    at: 18,
-  },
-  {
-    text: 'A água e os açúcares estão na faixa ideal — o gelato congela de forma limpa e cremosa.',
-    emphasis: 'faixa ideal',
-    at: 55,
-  },
-  {
-    text: 'O PAC indica ponto de congelamento adequado para vitrine; o POD traz doçura equilibrada sem mascarar o pistache.',
-    emphasis: 'PAC',
-    at: 100,
-  },
-  {
-    text: 'Overrun e cremosidade sugerem boa estrutura na mantecação e estabilidade na exposição.',
-    emphasis: 'cremosidade',
-    at: 155,
-  },
-];
+/** Timing de entrada das linhas de explicação (frames 30fps). */
+const EXPLANATION_ATS = [18, 55, 100, 155] as const;
 
-/** Tabela ANVISA (porção + 100g + %VD) — beat Nutrição */
-type NutrientRow = {
-  name: string;
-  portion: string;
-  per100: string;
-  vd: string;
-  indent?: boolean;
-};
-
-const ANVISA_ROWS: NutrientRow[] = [
-  {name: 'Valor energético (kcal)', portion: '129', per100: '215', vd: '6%'},
-  {name: 'Carboidratos (g)', portion: '14', per100: '24', vd: '5%'},
-  {name: 'Açúcares totais (g)', portion: '13', per100: '21', vd: '—', indent: true},
-  {name: 'Açúcares adicionados (g)', portion: '11', per100: '18', vd: '22%', indent: true},
-  {name: 'Proteínas (g)', portion: '2,3', per100: '3,8', vd: '5%'},
-  {name: 'Gorduras totais (g)', portion: '6,6', per100: '11', vd: '10%'},
-  {name: 'Gorduras saturadas (g)', portion: '3,4', per100: '5,6', vd: '17%', indent: true},
-  {name: 'Gorduras trans (g)', portion: '0', per100: '0', vd: '0%', indent: true},
-  {name: 'Fibra alimentar (g)', portion: '0,5', per100: '0,8', vd: '2%'},
-  {name: 'Sódio (mg)', portion: '27', per100: '45', vd: '1%'},
+const RESUMO_STATUSES: GaugeStatus[][] = [
+  ['perfect', 'perfect', 'perfect', 'perfect', 'technical', 'technical'],
+  ['perfect', 'perfect', 'perfect'],
+  ['perfect', 'perfect', 'perfect', 'perfect'],
+  ['perfect', 'perfect', 'perfect', 'perfect'],
+  ['perfect', 'perfect', 'perfect'],
+  ['perfect', 'perfect', 'perfect', 'perfect'],
 ];
 
 const cellBorder = '1.5px solid #1a1a1a';
-
-const RESUMO_SECTIONS: {
-  title: string;
-  rows: {label: string; value: string; status: GaugeStatus}[];
-}[] = [
-  {
-    title: 'Composição complementar',
-    rows: [
-      {label: 'Lactose', value: '5%', status: 'perfect'},
-      {label: 'Fibras', value: '0,8%', status: 'perfect'},
-      {label: 'Frutas', value: '0%', status: 'perfect'},
-      {label: 'SLNG', value: '9%', status: 'perfect'},
-      {label: 'Outros sólidos', value: '3%', status: 'technical'},
-      {label: 'Neutro / Estabilizante', value: '0,5%', status: 'technical'},
-    ],
-  },
-  {
-    title: 'Água Livre & Cristalização',
-    rows: [
-      {label: 'Água livre', value: '12%', status: 'perfect'},
-      {label: 'Índice de cristalização', value: '42', status: 'perfect'},
-      {label: 'Qualidade da cristalização', value: '88%', status: 'perfect'},
-    ],
-  },
-  {
-    title: 'Viscosidade & Cremosidade',
-    rows: [
-      {label: 'Índice de viscosidade', value: '68', status: 'perfect'},
-      {label: 'Cremosidade real', value: '74', status: 'perfect'},
-      {label: 'Índice de derretimento', value: '55', status: 'perfect'},
-      {label: 'Índice de paladar', value: '72', status: 'perfect'},
-    ],
-  },
-  {
-    title: 'Comportamento por Temperatura',
-    rows: [
-      {label: 'Temp. ideal da vitrine', value: '−12,5 °C', status: 'perfect'},
-      {label: 'Mantecação (−6 °C)', value: '82', status: 'perfect'},
-      {label: 'Vitrine (−10 °C)', value: '78', status: 'perfect'},
-      {label: 'Freezer (−18 °C)', value: '85', status: 'perfect'},
-    ],
-  },
-  {
-    title: 'Simulação de Qualidade',
-    rows: [
-      {label: 'Maciez do gelato na vitrine', value: '78', status: 'perfect'},
-      {label: 'Cremosidade na vitrine', value: '81', status: 'perfect'},
-      {label: 'Estabilidade na vitrine', value: '76', status: 'perfect'},
-    ],
-  },
-  {
-    title: 'Índices do Gelato',
-    rows: [
-      {label: 'Espátulabilidade', value: '82', status: 'perfect'},
-      {label: 'Corpo', value: '79', status: 'perfect'},
-      {label: 'Estabilidade da estrutura', value: '84', status: 'perfect'},
-      {label: 'Índice global do gelato', value: '80', status: 'perfect'},
-    ],
-  },
-];
-
-const ANALYSIS_TABS = [
-  'Gauges',
-  'Resumo',
-  'Explicação',
-  'Valores Nutricionais',
-] as const;
-type AnalysisTab = (typeof ANALYSIS_TABS)[number];
 
 const StatusPill: React.FC<{status: GaugeStatus; fontSize?: number}> = ({
   status,
   fontSize = 14,
 }) => {
-  const st = STATUS_STYLE[status];
+  const c = useCopy();
+  const colors_ = STATUS_COLORS[status];
   return (
     <Pill
-      bg={st.bg}
-      color={st.color}
+      bg={colors_.bg}
+      color={colors_.color}
       fontSize={fontSize}
       style={{padding: `${Math.round(fontSize * 0.35)}px ${Math.round(fontSize * 0.85)}px`}}
     >
-      {st.label}
+      {c.scene05.status[status]}
     </Pill>
   );
 };
@@ -301,96 +159,100 @@ const StatusPill: React.FC<{status: GaugeStatus; fontSize?: number}> = ({
 const ShellHeader: React.FC<{showActions?: boolean; titleSize?: number}> = ({
   showActions = true,
   titleSize = 24,
-}) => (
-  <div
-    style={{
-      height: titleSize >= 32 ? 80 : 64,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      padding: '0 32px',
-      borderBottom: `1px solid ${colors.borderSoft}`,
-      flexShrink: 0,
-    }}
-  >
-    <div style={{display: 'flex', alignItems: 'center', gap: 14}}>
-      <span
-        style={{
-          fontFamily: fontBody,
-          fontWeight: 700,
-          fontSize: titleSize,
-          color: colors.textPrimary,
-        }}
-      >
-        Gelato de Pistache
-      </span>
-      <span
-        style={{
-          fontFamily: fontBody,
-          fontSize: Math.round(titleSize * 0.55),
-          color: colors.textMuted,
-        }}
-      >
-        v1.2
-      </span>
-    </div>
-    {showActions ? (
-      <div style={{display: 'flex', alignItems: 'center', gap: 10}}>
-        <div
+}) => {
+  const c = useCopy();
+  return (
+    <div
+      style={{
+        height: titleSize >= 32 ? 80 : 64,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '0 32px',
+        borderBottom: `1px solid ${colors.borderSoft}`,
+        flexShrink: 0,
+      }}
+    >
+      <div style={{display: 'flex', alignItems: 'center', gap: 14}}>
+        <span
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            backgroundColor: colors.primary,
-            color: colors.textInverse,
             fontFamily: fontBody,
-            fontWeight: 600,
-            fontSize: 16,
-            padding: '12px 18px',
-            borderRadius: radius.md,
-          }}
-        >
-          <Save size={18} color={colors.textInverse} />
-          Salvar
-        </div>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            backgroundColor: colors.surface,
-            border: `1px solid ${colors.border}`,
+            fontWeight: 700,
+            fontSize: titleSize,
             color: colors.textPrimary,
-            fontFamily: fontBody,
-            fontWeight: 600,
-            fontSize: 16,
-            padding: '12px 18px',
-            borderRadius: radius.md,
           }}
         >
-          <Printer size={18} color={colors.primary} />
-          Imprimir
-        </div>
+          {c.scene05.recipeTitle}
+        </span>
+        <span
+          style={{
+            fontFamily: fontBody,
+            fontSize: Math.round(titleSize * 0.55),
+            color: colors.textMuted,
+          }}
+        >
+          {c.scene05.recipeVersion}
+        </span>
       </div>
-    ) : null}
-  </div>
-);
+      {showActions ? (
+        <div style={{display: 'flex', alignItems: 'center', gap: 10}}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              backgroundColor: colors.primary,
+              color: colors.textInverse,
+              fontFamily: fontBody,
+              fontWeight: 600,
+              fontSize: 16,
+              padding: '12px 18px',
+              borderRadius: radius.md,
+            }}
+          >
+            <Save size={18} color={colors.textInverse} />
+            {c.scene05.save}
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              backgroundColor: colors.surface,
+              border: `1px solid ${colors.border}`,
+              color: colors.textPrimary,
+              fontFamily: fontBody,
+              fontWeight: 600,
+              fontSize: 16,
+              padding: '12px 18px',
+              borderRadius: radius.md,
+            }}
+          >
+            <Printer size={18} color={colors.primary} />
+            {c.scene05.print}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+};
 
 const TabsBar: React.FC<{
-  active: AnalysisTab;
   tabIndex: number;
   duration: number;
-}> = ({active, tabIndex, duration}) => {
+}> = ({tabIndex, duration}) => {
+  const c = useCopy();
+  const tabs = c.scene05.analysisTabs;
   // duration e frame em frames reais (60fps) — sync com Sequence/VO
   const frame = useCurrentFrame();
   const local = Math.min(1, Math.max(0, frame / Math.max(1, duration - 1)));
-  const progressPct = ((tabIndex + local) / ANALYSIS_TABS.length) * 100;
+  const progressPct = ((tabIndex + local) / tabs.length) * 100;
 
   return (
     <div style={{marginBottom: 14}}>
       <div style={{display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap'}}>
-        {ANALYSIS_TABS.map((tab, i) => {
-          const isActive = tab === active;
+        {tabs.map((tab, i) => {
+          const isActive = i === tabIndex;
           const visited = i < tabIndex;
           return (
             <span
@@ -539,8 +401,15 @@ const CompCallout: React.FC<{
 };
 
 const BeatComposition: React.FC = () => {
+  const c = useCopy();
+  const locale = useLocale();
+  const currency = locale === 'it' ? '€' : 'R$';
   const frame = useAuthoredFrame();
   const fps = AUTHOR_FPS;
+  const compositionRows = c.scene05.compositionRows;
+  const headers = c.scene05.compositionHeaders;
+  const footerCards = c.scene05.footerCards;
+  const callouts = c.scene05.callouts;
 
   const panelIn = spring({
     frame: frame - 2,
@@ -618,7 +487,7 @@ const BeatComposition: React.FC = () => {
               borderBottom: `1px solid ${colors.borderSoft}`,
             }}
           >
-            <span>Ingrediente</span>
+            <span>{headers[0]}</span>
             <span
               style={{
                 textAlign: 'center',
@@ -626,7 +495,7 @@ const BeatComposition: React.FC = () => {
                 transform: `scale(${1 + phaseSupplier * 0.06})`,
               }}
             >
-              Fornecedor
+              {headers[1]}
             </span>
             <span
               style={{
@@ -634,7 +503,7 @@ const BeatComposition: React.FC = () => {
                 color: phaseSupplier > 0.5 ? colors.primary : colors.textMuted,
               }}
             >
-              Preço/kg
+              {headers[2]}
             </span>
             <span
               style={{
@@ -642,19 +511,19 @@ const BeatComposition: React.FC = () => {
                 color: phaseSupplier > 0.5 ? colors.primary : colors.textMuted,
               }}
             >
-              Preço na receita
+              {headers[3]}
             </span>
-            <span style={{textAlign: 'center'}}>Peso</span>
+            <span style={{textAlign: 'center'}}>{headers[4]}</span>
           </div>
 
           <div style={{display: 'flex', flexDirection: 'column', gap: 10, position: 'relative'}}>
-            {COMPOSITION_ROWS.map((row, i) => {
+            {compositionRows.map((row, i) => {
               const enter = spring({
                 frame: frame - 10 - i * 7,
                 fps,
                 config: {damping: 14, stiffness: 130, mass: 0.7},
               });
-              const isGlobal = row.scope === 'global';
+              const isGlobal = COMPOSITION_SCOPES[i] === 'global';
               const ScopeIcon = isGlobal ? Globe : Building2;
               const scopeGlow = isGlobal ? phaseCertified : phaseCustom;
               const dimOther =
@@ -738,7 +607,7 @@ const BeatComposition: React.FC = () => {
                         fontSize={14}
                         style={{padding: '4px 10px'}}
                       >
-                        {isGlobal ? 'Certificado ICone' : 'Seu cadastro'}
+                        {isGlobal ? c.scene05.scopeCertified : c.scene05.scopeWorkspace}
                       </Pill>
                     ) : null}
                   </span>
@@ -813,13 +682,13 @@ const BeatComposition: React.FC = () => {
               flexShrink: 0,
             }}
           >
-            {FOOTER_CARDS.map((card, i) => {
+            {footerCards.map((card, i) => {
               const pop = spring({
                 frame: frame - 48 - i * 5,
                 fps,
                 config: {damping: 12, stiffness: 140, mass: 0.65},
               });
-              const Icon = card.icon;
+              const Icon = FOOTER_ICONS[i];
               const isTarget = i === 3;
               const isCost = i === 1 || i === 2;
               const emphasis =
@@ -835,7 +704,7 @@ const BeatComposition: React.FC = () => {
                   : null;
               const displayValue =
                 counted !== null
-                  ? `R$ ${counted.toFixed(2).replace('.', ',')}${i === 2 ? '/Kg' : ''}`
+                  ? `${currency} ${counted.toFixed(2).replace('.', ',')}${i === 2 ? '/Kg' : ''}`
                   : card.value;
 
               return (
@@ -933,7 +802,7 @@ const BeatComposition: React.FC = () => {
                   color: colors.textPrimary,
                 }}
               >
-                Calculando parâmetros técnicos…
+                {c.scene05.calculating}
               </span>
             </div>
           ) : null}
@@ -953,13 +822,13 @@ const BeatComposition: React.FC = () => {
         }}
       >
         <Eyebrow delay={2} fontSize={30}>
-          Criação de receita
+          {c.scene05.eyebrows.composition}
         </Eyebrow>
       </div>
 
       <CompCallout
-        label="Certificados"
-        sub="Ingredientes ICone"
+        label={callouts[0].label}
+        sub={callouts[0].sub}
         icon={Globe}
         tint={colors.success}
         soft={colors.successSoft}
@@ -968,8 +837,8 @@ const BeatComposition: React.FC = () => {
         y={210}
       />
       <CompCallout
-        label="Workspace"
-        sub="Seus ingredientes"
+        label={callouts[1].label}
+        sub={callouts[1].sub}
         icon={Building2}
         tint={colors.primary}
         soft={colors.primarySoft}
@@ -978,8 +847,8 @@ const BeatComposition: React.FC = () => {
         y={240}
       />
       <CompCallout
-        label="Custo"
-        sub="Fornecedores vinculados"
+        label={callouts[2].label}
+        sub={callouts[2].sub}
         icon={BadgeDollarSign}
         tint={colors.warning}
         soft={colors.warningSoft}
@@ -988,8 +857,8 @@ const BeatComposition: React.FC = () => {
         y={180}
       />
       <CompCallout
-        label="Produção"
-        sub="Alvo · 5.000 g"
+        label={callouts[3].label}
+        sub={callouts[3].sub}
         icon={Package}
         tint={colors.success}
         soft={colors.successSoft}
@@ -1004,8 +873,11 @@ const BeatComposition: React.FC = () => {
 /* ─── Beat 2: Gauges ─────────────────────────────────────────────── */
 
 const BeatGauges: React.FC = () => {
+  const c = useCopy();
+  const {beat} = useScene05Timing();
   const frame = useAuthoredFrame();
   const fps = AUTHOR_FPS;
+  const gauges = c.scene05.gauges;
 
   const panelIn = spring({
     frame: frame - 2,
@@ -1046,7 +918,7 @@ const BeatGauges: React.FC = () => {
             minHeight: 0,
           }}
         >
-          <TabsBar active="Gauges" tabIndex={0} duration={BEAT.gauges} />
+          <TabsBar tabIndex={0} duration={beat.gauges} />
 
           <div
             style={{
@@ -1063,21 +935,22 @@ const BeatGauges: React.FC = () => {
               paddingBottom: 4,
             }}
           >
-            {GAUGES.map((gauge, i) => {
-              const st = STATUS_STYLE[gauge.status];
+            {gauges.map((gauge, i) => {
+              const meta = GAUGE_META[i];
+              const st = STATUS_COLORS[meta.status];
               return (
                 <GaugeArc
                   key={gauge.label}
                   label={gauge.label}
                   value={gauge.value}
-                  fraction={gauge.fraction}
+                  fraction={meta.fraction}
                   zones={ZONES}
                   delay={8 + i * 7}
                   size={148}
-                  statusLabel={st.label}
+                  statusLabel={c.scene05.status[meta.status]}
                   statusBg={st.bg}
                   statusColor={st.color}
-                  alert={gauge.status === 'out' || gauge.status === 'technical'}
+                  alert={meta.status === 'out' || meta.status === 'technical'}
                 />
               );
             })}
@@ -1127,7 +1000,7 @@ const BeatGauges: React.FC = () => {
                   marginBottom: 2,
                 }}
               >
-                Temperatura ideal da vitrine
+                {c.scene05.tempStripTitle}
               </div>
               <div
                 style={{
@@ -1136,7 +1009,7 @@ const BeatGauges: React.FC = () => {
                   color: colors.textSecondary,
                 }}
               >
-                Comportamento estável para exposição e serviço
+                {c.scene05.tempStripSubtitle}
               </div>
             </div>
             <div
@@ -1186,7 +1059,7 @@ const BeatGauges: React.FC = () => {
 
       <div style={{position: 'absolute', top: 18, right: 28, zIndex: 20}}>
         <Eyebrow delay={2} fontSize={24}>
-          Parâmetros técnicos
+          {c.scene05.eyebrows.gauges}
         </Eyebrow>
       </div>
     </AbsoluteFill>
@@ -1196,8 +1069,11 @@ const BeatGauges: React.FC = () => {
 /* ─── Beat 3: Resumo ─────────────────────────────────────────────── */
 
 const BeatResumo: React.FC = () => {
+  const c = useCopy();
+  const {beat} = useScene05Timing();
   const frame = useAuthoredFrame();
   const fps = AUTHOR_FPS;
+  const resumoSections = c.scene05.resumoSections;
 
   const panelIn = spring({
     frame: frame - 2,
@@ -1230,7 +1106,7 @@ const BeatResumo: React.FC = () => {
             minHeight: 0,
           }}
         >
-          <TabsBar active="Resumo" tabIndex={1} duration={BEAT.resumo} />
+          <TabsBar tabIndex={1} duration={beat.resumo} />
           <div
             style={{
               flex: 1,
@@ -1241,12 +1117,13 @@ const BeatResumo: React.FC = () => {
               alignContent: 'start',
             }}
           >
-            {RESUMO_SECTIONS.map((section, s) => {
+            {resumoSections.map((section, s) => {
               const secIn = spring({
                 frame: frame - 6 - s * 8,
                 fps,
                 config: {damping: 200, stiffness: 110},
               });
+              const statuses = RESUMO_STATUSES[s];
               return (
                 <div
                   key={section.title}
@@ -1273,7 +1150,7 @@ const BeatResumo: React.FC = () => {
                   >
                     {section.title}
                   </div>
-                  {section.rows.map((row) => (
+                  {section.rows.map((row, ri) => (
                     <div
                       key={row.label}
                       style={{
@@ -1294,7 +1171,7 @@ const BeatResumo: React.FC = () => {
                         <span style={{fontWeight: 700, color: colors.textPrimary, fontSize: 24}}>
                           {row.value}
                         </span>
-                        <StatusPill status={row.status} fontSize={15} />
+                        <StatusPill status={statuses[ri]} fontSize={15} />
                       </div>
                     </div>
                   ))}
@@ -1307,7 +1184,7 @@ const BeatResumo: React.FC = () => {
 
       <div style={{position: 'absolute', top: 18, right: 28, zIndex: 20}}>
         <Eyebrow delay={2} fontSize={24}>
-          Aba Resumo
+          {c.scene05.eyebrows.resumo}
         </Eyebrow>
       </div>
     </AbsoluteFill>
@@ -1344,8 +1221,14 @@ const renderEmphasized = (text: string, emphasis: string, active: number) => {
 };
 
 const BeatExplanation: React.FC = () => {
+  const c = useCopy();
+  const {beat} = useScene05Timing();
   const frame = useAuthoredFrame();
   const fps = AUTHOR_FPS;
+  const explanationBlocks = c.scene05.explanationBlocks.map((block, i) => ({
+    ...block,
+    at: EXPLANATION_ATS[i],
+  }));
 
   const panelIn = spring({
     frame: frame - 2,
@@ -1370,7 +1253,7 @@ const BeatExplanation: React.FC = () => {
     extrapolateRight: 'clamp',
   });
 
-  const activeIndex = EXPLANATION_BLOCKS.reduce((acc, block, i) => {
+  const activeIndex = explanationBlocks.reduce((acc, block, i) => {
     return frame >= block.at ? i : acc;
   }, -1);
 
@@ -1399,7 +1282,7 @@ const BeatExplanation: React.FC = () => {
             minHeight: 0,
           }}
         >
-          <TabsBar active="Explicação" tabIndex={2} duration={BEAT.explanation} />
+          <TabsBar tabIndex={2} duration={beat.explanation} />
           <div
             style={{
               flex: 1,
@@ -1446,15 +1329,15 @@ const BeatExplanation: React.FC = () => {
                     color: colors.textPrimary,
                   }}
                 >
-                  Inteligência ICone
+                  {c.scene05.explanationHeader}
                 </div>
                 <div style={{fontFamily: fontBody, fontSize: 20, color: colors.textMuted}}>
-                  Tradução simples dos parâmetros técnicos
+                  {c.scene05.explanationSubheader}
                 </div>
               </div>
             </div>
 
-            {EXPLANATION_BLOCKS.map((block, i) => {
+            {explanationBlocks.map((block, i) => {
               const lineIn = spring({
                 frame: frame - block.at,
                 fps,
@@ -1466,7 +1349,7 @@ const BeatExplanation: React.FC = () => {
               });
               const isActive = i === activeIndex && lineIn > 0.4;
               const caretBlink =
-                isActive && i < EXPLANATION_BLOCKS.length - 1
+                isActive && i < explanationBlocks.length - 1
                   ? 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(frame * 0.35))
                   : isActive
                     ? interpolate(frame - block.at, [40, 55], [1, 0], {
@@ -1531,18 +1414,24 @@ const BeatExplanation: React.FC = () => {
 
       <div style={{position: 'absolute', top: 18, right: 28, zIndex: 20}}>
         <Eyebrow delay={2} fontSize={24}>
-          Aba Explicação
+          {c.scene05.eyebrows.explanation}
         </Eyebrow>
       </div>
     </AbsoluteFill>
   );
 };
 
-/* ─── Beat 5: Aba Valores Nutricionais (tabela ANVISA + CTAs) ─────── */
+/* ─── Beat 5: Aba Valores Nutricionais (tabela nutricional + CTAs) ─────── */
 
 const AnvisaNutritionTable: React.FC = () => {
+  const c = useCopy();
   const frame = useAuthoredFrame();
   const fps = AUTHOR_FPS;
+  const anvisa = c.scene05.anvisa;
+  const rows = anvisa.rows;
+  const compactValues = rows.some((r) => r.portion.includes('/'));
+  const tableFont = compactValues ? 17 : 20;
+  const headFont = compactValues ? 16 : 18;
 
   const enter = spring({
     frame: frame - 4,
@@ -1576,7 +1465,7 @@ const AnvisaNutritionTable: React.FC = () => {
           lineHeight: 1.1,
         }}
       >
-        Informação nutricional
+        {anvisa.title}
       </div>
 
       <div
@@ -1588,14 +1477,14 @@ const AnvisaNutritionTable: React.FC = () => {
         }}
       >
         <div>
-          <strong>Porções por embalagem:</strong> 8
+          <strong>{anvisa.servingsLabel}</strong> {anvisa.servingsValue}
         </div>
         <div>
-          <strong>Porção:</strong> 60 g (1 bola)
+          <strong>{anvisa.portionLabel}</strong> {anvisa.portionValue}
         </div>
       </div>
 
-      <table style={{width: '100%', borderCollapse: 'collapse', fontSize: 20}}>
+      <table style={{width: '100%', borderCollapse: 'collapse', fontSize: tableFont}}>
         <thead>
           <tr>
             <th
@@ -1604,53 +1493,54 @@ const AnvisaNutritionTable: React.FC = () => {
                 borderRight: cellBorder,
                 padding: '10px 18px',
                 textAlign: 'left',
-                width: '52%',
+                width: '46%',
               }}
             />
             <th
               style={{
                 borderBottom: cellBorder,
                 borderRight: cellBorder,
-                padding: '10px 10px',
+                padding: '10px 8px',
                 textAlign: 'center',
                 fontWeight: 700,
-                fontSize: 18,
+                fontSize: headFont,
               }}
             >
-              60 g
+              {anvisa.colPortion}
             </th>
             <th
               style={{
                 borderBottom: cellBorder,
                 borderRight: cellBorder,
-                padding: '10px 10px',
+                padding: '10px 8px',
                 textAlign: 'center',
                 fontWeight: 700,
-                fontSize: 18,
+                fontSize: headFont,
               }}
             >
-              100 g
+              {anvisa.col100}
             </th>
             <th
               style={{
                 borderBottom: cellBorder,
-                padding: '10px 10px',
+                padding: '10px 8px',
                 textAlign: 'center',
                 fontWeight: 700,
-                fontSize: 18,
+                fontSize: headFont,
               }}
             >
-              %VD*
+              {anvisa.colVd}
             </th>
           </tr>
         </thead>
         <tbody>
-          {ANVISA_ROWS.map((row, i) => {
+          {rows.map((row, i) => {
             const rowIn = interpolate(frame - 8 - i * 3, [0, 6], [0, 1], {
               extrapolateLeft: 'clamp',
               extrapolateRight: 'clamp',
             });
-            const isLast = i === ANVISA_ROWS.length - 1;
+            const isLast = i === rows.length - 1;
+            const indent = Boolean(row.indent);
             return (
               <tr key={row.name} style={{opacity: rowIn}}>
                 <td
@@ -1658,8 +1548,8 @@ const AnvisaNutritionTable: React.FC = () => {
                     borderBottom: isLast ? 'none' : cellBorder,
                     borderRight: cellBorder,
                     padding: '9px 18px',
-                    paddingLeft: row.indent ? 34 : 18,
-                    fontWeight: row.indent ? 500 : 700,
+                    paddingLeft: indent ? 34 : 18,
+                    fontWeight: indent ? 500 : 700,
                   }}
                 >
                   {row.name}
@@ -1711,9 +1601,7 @@ const AnvisaNutritionTable: React.FC = () => {
           color: '#333',
         }}
       >
-        *Percentual de valores diários com base em uma dieta de 2.000 kcal ou 8.400 kJ.
-        Seus valores diários podem ser maiores ou menores dependendo de suas necessidades
-        energéticas.
+        {anvisa.footer}
       </div>
     </div>
   );
@@ -1788,6 +1676,8 @@ const NutritionCtaButton: React.FC<{
 };
 
 const BeatNutrition: React.FC<{duration: number}> = ({duration}) => {
+  const c = useCopy();
+  const {ctaHighlightAt} = useScene05Timing();
   const frame = useAuthoredFrame();
   const realFrame = useCurrentFrame();
   const fps = AUTHOR_FPS;
@@ -1804,10 +1694,10 @@ const BeatNutrition: React.FC<{duration: number}> = ({duration}) => {
     config: {damping: 14, stiffness: 130, mass: 0.7},
   });
 
-  // Sync VO “E direto dessa mesma tela…” (~128.88s)
+  // Sync VO “E direto dessa mesma tela…” (PT ~128.88s, escalado via t())
   const ctaMode = interpolate(
     realFrame,
-    [CTA_HIGHLIGHT_AT - 4, CTA_HIGHLIGHT_AT + 12, duration - 20, duration - 2],
+    [ctaHighlightAt - 4, ctaHighlightAt + 12, duration - 20, duration - 2],
     [0, 1, 1, 0.7],
     {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'},
   );
@@ -1817,7 +1707,7 @@ const BeatNutrition: React.FC<{duration: number}> = ({duration}) => {
    * 1) Etiqueta sobe e segura
    * 2) Cruza para Ficha Técnica e permanece
    */
-  const local = Math.max(0, realFrame - CTA_HIGHLIGHT_AT);
+  const local = Math.max(0, realFrame - ctaHighlightAt);
   const etiquetaFocus =
     ctaMode *
     interpolate(
@@ -1866,11 +1756,7 @@ const BeatNutrition: React.FC<{duration: number}> = ({duration}) => {
             gap: 10,
           }}
         >
-          <TabsBar
-            active="Valores Nutricionais"
-            tabIndex={3}
-            duration={duration}
-          />
+          <TabsBar tabIndex={3} duration={duration} />
 
           <div
             style={{
@@ -1892,13 +1778,13 @@ const BeatNutrition: React.FC<{duration: number}> = ({duration}) => {
               ctaMode={ctaMode}
               focus={etiquetaFocus}
               icon={Tag}
-              label="Gerar Etiqueta"
+              label={c.scene05.ctaGenerateLabel}
             />
             <NutritionCtaButton
               ctaMode={ctaMode}
               focus={fichaFocus}
               icon={ClipboardList}
-              label="Gerar Ficha Técnica"
+              label={c.scene05.ctaGenerateTechSheet}
             />
           </div>
 
@@ -1941,9 +1827,10 @@ const BeatNutrition: React.FC<{duration: number}> = ({duration}) => {
                   fontWeight: 500,
                 }}
               >
-                Calculada automaticamente a partir dos ingredientes · normas{' '}
-                <span style={{fontWeight: 700, color: colors.textPrimary}}>ANVISA</span>
-                {' '}(RDC 429/2020)
+                {c.scene05.anvisa.badge}{' '}
+                <span style={{fontWeight: 700, color: colors.textPrimary}}>
+                  {c.scene05.anvisa.badgeNorm}
+                </span>
               </span>
             </div>
           </div>
@@ -1952,7 +1839,7 @@ const BeatNutrition: React.FC<{duration: number}> = ({duration}) => {
 
       <div style={{position: 'absolute', top: 18, right: 28, zIndex: 20}}>
         <Eyebrow delay={2} fontSize={24}>
-          Valores nutricionais
+          {c.scene05.eyebrows.nutrition}
         </Eyebrow>
       </div>
     </AbsoluteFill>
@@ -1962,26 +1849,27 @@ const BeatNutrition: React.FC<{duration: number}> = ({duration}) => {
 /* ─── Scene ──────────────────────────────────────────────────────── */
 
 export const Scene05: React.FC = () => {
-  const fromGauges = BEAT.composition;
-  const fromResumo = fromGauges + BEAT.gauges;
-  const fromExplanation = fromResumo + BEAT.resumo;
-  const fromNutrition = fromExplanation + BEAT.explanation;
-  const nutritionDur = Math.max(BEAT.nutrition, DUR.scene05 - fromNutrition);
+  const {beat, scene05Dur} = useScene05Timing();
+  const fromGauges = beat.composition;
+  const fromResumo = fromGauges + beat.gauges;
+  const fromExplanation = fromResumo + beat.resumo;
+  const fromNutrition = fromExplanation + beat.explanation;
+  const nutritionDur = Math.max(beat.nutrition, scene05Dur - fromNutrition);
 
   return (
     <SceneBackground>
-      <Sequence from={0} durationInFrames={BEAT.composition} name="Composição">
+      <Sequence from={0} durationInFrames={beat.composition} name="Composição">
         <BeatComposition />
       </Sequence>
-      <Sequence from={fromGauges} durationInFrames={BEAT.gauges} name="Gauges">
+      <Sequence from={fromGauges} durationInFrames={beat.gauges} name="Gauges">
         <BeatGauges />
       </Sequence>
-      <Sequence from={fromResumo} durationInFrames={BEAT.resumo} name="Resumo">
+      <Sequence from={fromResumo} durationInFrames={beat.resumo} name="Resumo">
         <BeatResumo />
       </Sequence>
       <Sequence
         from={fromExplanation}
-        durationInFrames={BEAT.explanation}
+        durationInFrames={beat.explanation}
         name="Explicação"
       >
         <BeatExplanation />

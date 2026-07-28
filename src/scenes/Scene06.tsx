@@ -13,6 +13,7 @@ import {AnimatedText} from '../components/AnimatedText';
 import {Pill} from '../components/Pill';
 import {colors, radius, shadows} from '../theme';
 import {fontBody, fontDisplay} from '../fonts';
+import {useCopy} from '../i18n/LocaleContext';
 
 /**
  * Cena 6 — Correção automática: gauges em vermelho →
@@ -22,24 +23,12 @@ import {fontBody, fontDisplay} from '../fonts';
 const PROCESS_IN = 90;
 const RESULT_IN = 220;
 
-const STEPS = [
-  'Analisando a formulação',
-  'Ajustando açúcares e sólidos',
-  'Preservando a identidade da receita',
-  'Validando parâmetros técnicos',
-];
-
-const PARAMS = [
-  {label: 'PAC', before: '32.4', after: '27.8'},
-  {label: 'Sólidos totais', before: '46%', after: '38%'},
-  {label: 'Açúcares', before: '26%', after: '21%'},
-  {label: 'POD', before: '11.2', after: '16.5'},
-];
-
 const ProcessingPanel: React.FC<{delay: number}> = ({delay}) => {
   const frame = useAuthoredFrame();
   const fps = AUTHOR_FPS;
+  const c = useCopy();
   const local = frame - delay;
+  const steps = c.scene06.processSteps;
 
   const enter = spring({
     frame: local,
@@ -125,7 +114,7 @@ const ProcessingPanel: React.FC<{delay: number}> = ({delay}) => {
       </div>
 
       <div style={{display: 'flex', flexDirection: 'column', gap: 20}}>
-        {STEPS.map((step, i) => {
+        {steps.map((step, i) => {
           const stepStart = 12 + i * 32;
           const stepDone = stepStart + 32;
           const isActive = local >= stepStart && local < stepDone;
@@ -204,7 +193,9 @@ const ProcessingPanel: React.FC<{delay: number}> = ({delay}) => {
 const BeforeAfter: React.FC<{delay: number}> = ({delay}) => {
   const frame = useAuthoredFrame();
   const fps = AUTHOR_FPS;
+  const c = useCopy();
   const local = frame - delay;
+  const params = c.scene06.params;
 
   const enter = spring({frame: local, fps, config: {damping: 200, stiffness: 90}});
   const metricPop = spring({
@@ -249,7 +240,7 @@ const BeforeAfter: React.FC<{delay: number}> = ({delay}) => {
               color: isAfter ? colors.primary : colors.textMuted,
             }}
           >
-            {isAfter ? 'Depois' : 'Antes'}
+            {isAfter ? c.scene06.after : c.scene06.before}
           </span>
           <Pill
             bg={isAfter ? 'rgba(16,185,129,0.15)' : 'rgba(220,38,38,0.12)'}
@@ -257,10 +248,10 @@ const BeforeAfter: React.FC<{delay: number}> = ({delay}) => {
             fontSize={24}
             style={{padding: '10px 20px'}}
           >
-            {isAfter ? 'Perfect' : 'Out'}
+            {isAfter ? c.scene06.statusPerfect : c.scene06.statusOut}
           </Pill>
         </div>
-        {PARAMS.map((param, i) => {
+        {params.map((param, i) => {
           const rowIn = interpolate(local - 14 - i * 6, [0, 10], [0, 1], {
             extrapolateLeft: 'clamp',
             extrapolateRight: 'clamp',
@@ -327,7 +318,7 @@ const BeforeAfter: React.FC<{delay: number}> = ({delay}) => {
             color: colors.success,
           }}
         >
-          +38% de melhora
+          {c.scene06.improvement}
         </span>
       </div>
 
@@ -356,6 +347,7 @@ const BeforeAfter: React.FC<{delay: number}> = ({delay}) => {
 
 export const Scene06: React.FC = () => {
   const frame = useAuthoredFrame();
+  const c = useCopy();
 
   const introOpacity = interpolate(frame, [PROCESS_IN - 20, PROCESS_IN], [1, 0], {
     extrapolateLeft: 'clamp',
@@ -372,7 +364,7 @@ export const Scene06: React.FC = () => {
     <SceneBackground>
       <AbsoluteFill style={{alignItems: 'center', paddingTop: 32}}>
         <Eyebrow delay={2} fontSize={40}>
-          Correção automática
+          {c.scene06.eyebrow}
         </Eyebrow>
       </AbsoluteFill>
 
@@ -382,7 +374,7 @@ export const Scene06: React.FC = () => {
         >
           <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 36}}>
             <AnimatedText
-              text="Receita desequilibrada."
+              text={c.scene06.unbalanced}
               delay={10}
               stagger={5}
               style={{
@@ -393,7 +385,7 @@ export const Scene06: React.FC = () => {
               }}
             />
             <div style={{display: 'flex', gap: 22}}>
-              {['PAC 32.4', 'Sólidos 46%', 'Açúcares 26%'].map((tag, i) => (
+              {c.scene06.introTags.map((tag, i) => (
                 <Pill
                   key={tag}
                   bg="rgba(220,38,38,0.12)"
@@ -431,7 +423,7 @@ export const Scene06: React.FC = () => {
           <BeforeAfter delay={RESULT_IN} />
           <div style={{marginTop: 32, maxWidth: 1700, textAlign: 'center'}}>
             <AnimatedText
-              text="ICone não apenas identifica o problema. Ele propõe uma solução."
+              text={c.scene06.resultLine}
               delay={RESULT_IN + 80}
               stagger={3}
               style={{

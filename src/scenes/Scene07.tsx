@@ -14,6 +14,7 @@ import {Pill} from '../components/Pill';
 import {GaugeBar} from '../components/GaugeBar';
 import {colors, radius, shadows} from '../theme';
 import {fontBody, fontDisplay} from '../fonts';
+import {useCopy} from '../i18n/LocaleContext';
 
 /**
  * Cena 7 — Módulo de neutros: partículas orbitam e convergem
@@ -25,17 +26,31 @@ const CONVERGE_END = 210;
 const BLEND_POP = 200;
 const DETAILS_IN = 260;
 
-const PARTICLES = [
-  {icon: Leaf, angle: 0.1, r: 400, tint: colors.success, label: 'LBG'},
-  {icon: Wheat, angle: 1.0, r: 440, tint: colors.warning, label: 'Guar'},
-  {icon: Snowflake, angle: 1.9, r: 380, tint: colors.info, label: 'Carragena'},
-  {icon: Milk, angle: 2.8, r: 450, tint: colors.primaryMuted, label: 'Emulsificante'},
-  {icon: Leaf, angle: 3.7, r: 410, tint: colors.pacViolet, label: 'Tara'},
-  {icon: Wheat, angle: 4.6, r: 370, tint: colors.sugarPink, label: 'Xantana'},
-  {icon: Snowflake, angle: 5.4, r: 430, tint: colors.gaugeBlue, label: 'CMC'},
+const PARTICLE_META = [
+  {icon: Leaf, angle: 0.1, r: 400, tint: colors.success},
+  {icon: Wheat, angle: 1.0, r: 440, tint: colors.warning},
+  {icon: Snowflake, angle: 1.9, r: 380, tint: colors.info},
+  {icon: Milk, angle: 2.8, r: 450, tint: colors.primaryMuted},
+  {icon: Leaf, angle: 3.7, r: 410, tint: colors.pacViolet},
+  {icon: Wheat, angle: 4.6, r: 370, tint: colors.sugarPink},
+  {icon: Snowflake, angle: 5.4, r: 430, tint: colors.gaugeBlue},
+] as const;
+
+const BLEND_BAR_COLORS = [
+  colors.success,
+  colors.warning,
+  colors.info,
+  colors.primaryMuted,
 ];
 
-const Particle: React.FC<(typeof PARTICLES)[number] & {index: number}> = ({
+const BLEND_BAR_FRACTIONS = [0.4, 0.3, 0.2, 0.1];
+
+type ParticleProps = (typeof PARTICLE_META)[number] & {
+  label: string;
+  index: number;
+};
+
+const Particle: React.FC<ParticleProps> = ({
   icon: Icon,
   angle,
   r,
@@ -116,6 +131,12 @@ const Particle: React.FC<(typeof PARTICLES)[number] & {index: number}> = ({
 export const Scene07: React.FC = () => {
   const frame = useAuthoredFrame();
   const fps = AUTHOR_FPS;
+  const c = useCopy();
+
+  const particles = PARTICLE_META.map((meta, i) => ({
+    ...meta,
+    label: c.scene07.particles[i],
+  }));
 
   const blendPop = spring({
     frame: frame - BLEND_POP,
@@ -137,10 +158,10 @@ export const Scene07: React.FC = () => {
     <SceneBackground>
       <AbsoluteFill style={{alignItems: 'center', paddingTop: 40, gap: 12}}>
         <Eyebrow delay={2} fontSize={36}>
-          Módulo de Neutros
+          {c.scene07.eyebrow}
         </Eyebrow>
         <AnimatedText
-          text="Combinações personalizadas de estabilizantes e emulsionantes"
+          text={c.scene07.subtitle}
           delay={14}
           stagger={2}
           style={{
@@ -165,7 +186,7 @@ export const Scene07: React.FC = () => {
           transform: `translateX(${stageShift}px)`,
         }}
       >
-        {PARTICLES.map((particle, i) => (
+        {particles.map((particle, i) => (
           <Particle key={`${particle.label}-${i}`} {...particle} index={i} />
         ))}
 
@@ -202,7 +223,7 @@ export const Scene07: React.FC = () => {
             fontSize={26}
             style={{padding: '10px 22px'}}
           >
-            Neutro personalizado
+            {c.scene07.centerPill}
           </Pill>
         </div>
       </div>
@@ -234,40 +255,19 @@ export const Scene07: React.FC = () => {
             color: colors.textPrimary,
           }}
         >
-          Neutro Base Branca v2
+          {c.scene07.blendTitle}
         </span>
-        <GaugeBar
-          label="LBG (alfarroba)"
-          valueLabel="40%"
-          fraction={0.4}
-          color={colors.success}
-          delay={DETAILS_IN + 12}
-          width={640}
-        />
-        <GaugeBar
-          label="Guar"
-          valueLabel="30%"
-          fraction={0.3}
-          color={colors.warning}
-          delay={DETAILS_IN + 20}
-          width={640}
-        />
-        <GaugeBar
-          label="Carragena"
-          valueLabel="20%"
-          fraction={0.2}
-          color={colors.info}
-          delay={DETAILS_IN + 28}
-          width={640}
-        />
-        <GaugeBar
-          label="Mono e diglicerídeos"
-          valueLabel="10%"
-          fraction={0.1}
-          color={colors.primaryMuted}
-          delay={DETAILS_IN + 36}
-          width={640}
-        />
+        {c.scene07.blendBars.map((bar, i) => (
+          <GaugeBar
+            key={bar.label}
+            label={bar.label}
+            valueLabel={bar.value}
+            fraction={BLEND_BAR_FRACTIONS[i]}
+            color={BLEND_BAR_COLORS[i]}
+            delay={DETAILS_IN + 12 + i * 8}
+            width={640}
+          />
+        ))}
 
         <div style={{display: 'flex', gap: 14, marginTop: 8, flexWrap: 'wrap'}}>
           <Pill
@@ -283,7 +283,7 @@ export const Scene07: React.FC = () => {
             }}
           >
             <CheckCircle2 size={22} color={colors.success} />
-            Compatibilidade alta
+            {c.scene07.compatibility}
           </Pill>
           <Pill
             bg={colors.primarySoft}
@@ -297,7 +297,7 @@ export const Scene07: React.FC = () => {
               }),
             }}
           >
-            Dose recomendada · 4,5 g/kg
+            {c.scene07.recommendedDose}
           </Pill>
         </div>
       </div>

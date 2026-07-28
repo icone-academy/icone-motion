@@ -22,6 +22,7 @@ import {Pill} from '../components/Pill';
 import {GaugeBar} from '../components/GaugeBar';
 import {colors, radius, shadows} from '../theme';
 import {fontBody, fontDisplay} from '../fonts';
+import {useCopy} from '../i18n/LocaleContext';
 
 /**
  * Engenharia reversa — roteiro:
@@ -33,40 +34,16 @@ const SCAN_IN = 450; // problema (VO 2:50–3:05)
 const PROCESS_IN = 600; // rótulo
 const RESULT_IN = 750; // composição + “não é IA”
 
-const LABEL_INGREDIENTS = [
-  'Leite integral, açúcar, xarope de glicose,',
-  'gordura vegetal, soro de leite em pó,',
-  'pasta de pistache, emulsificantes (mono e',
-  'diglicerídeos), estabilizantes (LBG, guar).',
-];
+const ESTIMATED_META = [
+  {fraction: 0.46, color: colors.primary},
+  {fraction: 0.22, color: colors.sugarPinkBar},
+  {fraction: 0.12, color: colors.fatAmberBar},
+  {fraction: 0.09, color: colors.info},
+  {fraction: 0.06, color: colors.success},
+  {fraction: 0.04, color: colors.pacViolet},
+] as const;
 
-const LABEL_NUTRITION = [
-  {name: 'Valor energético', value: '215 kcal'},
-  {name: 'Carboidratos', value: '24 g'},
-  {name: 'Açúcares totais', value: '21 g'},
-  {name: 'Gorduras totais', value: '11 g'},
-  {name: 'Proteínas', value: '3,8 g'},
-];
-
-const STEPS = [
-  'Lendo as informações do rótulo',
-  'Cruzando com o banco técnico da ICone',
-  'Reconstruindo uma composição coerente',
-];
-
-const ESTIMATED = [
-  {label: 'Leite integral', value: '~46%', fraction: 0.46, color: colors.primary},
-  {label: 'Açúcares (sacarose + glicose)', value: '~22%', fraction: 0.22, color: colors.sugarPinkBar},
-  {label: 'Gordura vegetal', value: '~12%', fraction: 0.12, color: colors.fatAmberBar},
-  {label: 'Soro de leite em pó', value: '~9%', fraction: 0.09, color: colors.info},
-  {label: 'Pasta de pistache', value: '~6%', fraction: 0.06, color: colors.success},
-  {label: 'Neutros e emulsificantes', value: '~1%', fraction: 0.04, color: colors.pacViolet},
-];
-
-const OUTCOMES = [
-  {icon: FlaskConical, label: 'Balancear a receita com segurança'},
-  {icon: Tag, label: 'Gerar etiqueta confiável'},
-];
+const OUTCOME_ICONS = [FlaskConical, Tag] as const;
 
 /** Embalagem genérica estilizada (pote sem marca). */
 const GenericProduct: React.FC<{delay: number; scale?: number}> = ({
@@ -75,6 +52,7 @@ const GenericProduct: React.FC<{delay: number; scale?: number}> = ({
 }) => {
   const frame = useAuthoredFrame();
   const fps = AUTHOR_FPS;
+  const c = useCopy();
 
   const pop = spring({
     frame: frame - delay,
@@ -151,7 +129,7 @@ const GenericProduct: React.FC<{delay: number; scale?: number}> = ({
               lineHeight: 1.2,
             }}
           >
-            Produto do mercado
+            {c.reverse.marketProduct}
           </span>
           {[0.9, 0.65, 0.8].map((w, i) => (
             <div
@@ -176,6 +154,9 @@ const GenericProduct: React.FC<{delay: number; scale?: number}> = ({
 const LabelPanel: React.FC<{delay: number}> = ({delay}) => {
   const frame = useAuthoredFrame();
   const fps = AUTHOR_FPS;
+  const c = useCopy();
+  const labelIngredients = c.reverse.labelIngredients;
+  const labelNutrition = c.reverse.labelNutritionRows;
 
   const enter = spring({
     frame: frame - delay,
@@ -209,7 +190,7 @@ const LabelPanel: React.FC<{delay: number}> = ({delay}) => {
             color: colors.textPrimary,
           }}
         >
-          Informações declaradas no rótulo
+          {c.reverse.labelHeader}
         </span>
       </div>
 
@@ -232,10 +213,10 @@ const LabelPanel: React.FC<{delay: number}> = ({delay}) => {
             color: colors.textMuted,
           }}
         >
-          Ingredientes
+          {c.reverse.ingredientsHeader}
         </span>
         <div style={{marginTop: 14, display: 'flex', flexDirection: 'column', gap: 8}}>
-          {LABEL_INGREDIENTS.map((line, i) => {
+          {labelIngredients.map((line, i) => {
             const lineIn = interpolate(frame - delay - 14 - i * 7, [0, 9], [0, 1], {
               extrapolateLeft: 'clamp',
               extrapolateRight: 'clamp',
@@ -276,10 +257,10 @@ const LabelPanel: React.FC<{delay: number}> = ({delay}) => {
             color: colors.textMuted,
           }}
         >
-          Tabela nutricional · porção 60 g
+          {c.reverse.labelNutritionTitle}
         </span>
         <div style={{marginTop: 14}}>
-          {LABEL_NUTRITION.map((row, i) => {
+          {labelNutrition.map((row, i) => {
             const rowIn = interpolate(frame - delay - 40 - i * 7, [0, 9], [0, 1], {
               extrapolateLeft: 'clamp',
               extrapolateRight: 'clamp',
@@ -292,7 +273,7 @@ const LabelPanel: React.FC<{delay: number}> = ({delay}) => {
                   justifyContent: 'space-between',
                   padding: '11px 0',
                   borderBottom:
-                    i < LABEL_NUTRITION.length - 1
+                    i < labelNutrition.length - 1
                       ? `1px solid ${colors.borderSoft}`
                       : 'none',
                   fontFamily: fontBody,
@@ -315,7 +296,9 @@ const LabelPanel: React.FC<{delay: number}> = ({delay}) => {
 const ReverseProcessing: React.FC<{delay: number}> = ({delay}) => {
   const frame = useAuthoredFrame();
   const fps = AUTHOR_FPS;
+  const c = useCopy();
   const local = frame - delay;
+  const steps = c.reverse.processSteps;
 
   const enter = spring({frame: local, fps, config: {damping: 200, stiffness: 100}});
   const rotation = (local / 96) * 360;
@@ -386,7 +369,7 @@ const ReverseProcessing: React.FC<{delay: number}> = ({delay}) => {
       </div>
 
       <div style={{display: 'flex', flexDirection: 'column', gap: 20}}>
-        {STEPS.map((step, i) => {
+        {steps.map((step, i) => {
           const stepStart = 10 + i * 36;
           const stepDone = stepStart + 36;
           const isActive = local >= stepStart && local < stepDone;
@@ -465,6 +448,17 @@ const ReverseProcessing: React.FC<{delay: number}> = ({delay}) => {
 export const SceneReverseEngineering: React.FC = () => {
   const frame = useAuthoredFrame();
   const fps = AUTHOR_FPS;
+  const c = useCopy();
+
+  const estimated = c.reverse.estimated.map((item, i) => ({
+    ...item,
+    ...ESTIMATED_META[i],
+  }));
+
+  const outcomes = c.reverse.outcomes.map((label, i) => ({
+    label,
+    icon: OUTCOME_ICONS[i],
+  }));
 
   const introOpacity = interpolate(frame, [SCAN_IN - 18, SCAN_IN], [1, 0], {
     extrapolateLeft: 'clamp',
@@ -495,7 +489,7 @@ export const SceneReverseEngineering: React.FC = () => {
     <SceneBackground>
       <AbsoluteFill style={{alignItems: 'center', paddingTop: 36, zIndex: 5}}>
         <Eyebrow delay={2} fontSize={38}>
-          Engenharia reversa
+          {c.reverse.eyebrow}
         </Eyebrow>
       </AbsoluteFill>
 
@@ -511,7 +505,7 @@ export const SceneReverseEngineering: React.FC = () => {
           }}
         >
           <AnimatedText
-            text="Sem a formulação completa, balancear e rotular fica difícil."
+            text={c.reverse.problemTitle}
             delay={8}
             stagger={2}
             style={{
@@ -538,8 +532,7 @@ export const SceneReverseEngineering: React.FC = () => {
               lineHeight: 1.35,
             }}
           >
-            Ingredientes de empresas especializadas — na maioria das vezes,
-            sem acesso à receita completa do produto.
+            {c.reverse.problemSubtitle}
           </div>
           <GenericProduct delay={55} />
         </AbsoluteFill>
@@ -572,7 +565,7 @@ export const SceneReverseEngineering: React.FC = () => {
               }),
             }}
           >
-            A ICone parte das informações do rótulo para reconstruir a composição.
+            {c.reverse.scanLead}
           </div>
           <div style={{display: 'flex', alignItems: 'center', gap: 48}}>
             <GenericProduct delay={SCAN_IN} scale={0.88} />
@@ -639,7 +632,7 @@ export const SceneReverseEngineering: React.FC = () => {
               }),
             }}
           >
-            Ciência e experiência técnica da ICone — não inteligência artificial.
+            {c.reverse.processLead}
           </div>
           <ReverseProcessing delay={PROCESS_IN + 4} />
         </AbsoluteFill>
@@ -656,7 +649,7 @@ export const SceneReverseEngineering: React.FC = () => {
           }}
         >
           <AnimatedText
-            text="Composição estimada — para entender, balancear e rotular"
+            text={c.reverse.resultTitle}
             delay={RESULT_IN + 4}
             stagger={2}
             style={{
@@ -700,13 +693,13 @@ export const SceneReverseEngineering: React.FC = () => {
                   color: colors.textPrimary,
                 }}
               >
-                Reconstrução coerente a partir do rótulo
+                {c.reverse.reconstructionTitle}
               </span>
               <Pill bg={colors.primarySoft} color={colors.primary} fontSize={22}>
-                Estimativa técnica
+                {c.reverse.estimatePill}
               </Pill>
             </div>
-            {ESTIMATED.map((item, i) => (
+            {estimated.map((item, i) => (
               <GaugeBar
                 key={item.label}
                 label={item.label}
@@ -731,7 +724,7 @@ export const SceneReverseEngineering: React.FC = () => {
               }),
             }}
           >
-            {OUTCOMES.map((item) => {
+            {outcomes.map((item) => {
               const Icon = item.icon;
               return (
                 <Pill
@@ -763,8 +756,7 @@ export const SceneReverseEngineering: React.FC = () => {
               }),
             }}
           >
-            Esse trabalho não é feito por inteligência artificial —
-            é resultado da ciência e da experiência técnica da ICone.
+            {c.reverse.scienceLine}
           </div>
 
           <div
@@ -782,7 +774,7 @@ export const SceneReverseEngineering: React.FC = () => {
               textAlign: 'center',
             }}
           >
-            Estimativa técnica com base no rótulo — não uma fórmula exata do fabricante.
+            {c.reverse.disclaimer}
           </div>
         </AbsoluteFill>
       ) : null}

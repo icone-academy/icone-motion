@@ -8,4 +8,5 @@ bin/ffmpeg-btbn.zip
 bin/ffmpeg-essentials.zip
 bin/ffmpeg/*.exe
 public/audio/vo-16k.wav
+public/audio/vo-it-16k.wav
 public/audio/vo.mpeg

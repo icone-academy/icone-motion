@@ -3,9 +3,8 @@ import {
   AbsoluteFill,
   interpolate,
   spring,
-  useVideoConfig,
 } from 'remotion';
-import {AUTHOR_FPS, T, useAuthoredFrame} from '../timeline';
+import {AUTHOR_FPS, useAuthoredFrame} from '../timeline';
 import {
   BadgeCheck,
   ExternalLink,
@@ -19,18 +18,12 @@ import {AnimatedText} from '../components/AnimatedText';
 import {Pill} from '../components/Pill';
 import {colors, radius, shadows} from '../theme';
 import {fontBody, fontDisplay} from '../fonts';
+import {useCopy} from '../i18n/LocaleContext';
 
 /**
  * Cena 4 (0:50–1:05) — Campo "Fonte": selos USDA, TBCA, TACO e
  * Fabricantes + status de validação. "Dados documentados e rastreáveis".
  */
-
-const SOURCES = [
-  {name: 'USDA', full: 'FoodData Central'},
-  {name: 'TBCA', full: 'Tabela Brasileira'},
-  {name: 'TACO', full: 'Unicamp'},
-  {name: 'Fabricantes', full: 'Fichas técnicas'},
-];
 
 const SourceSeal: React.FC<{name: string; full: string; delay: number}> = ({
   name,
@@ -121,6 +114,7 @@ const SourceSeal: React.FC<{name: string; full: string; delay: number}> = ({
 export const Scene04: React.FC = () => {
   const frame = useAuthoredFrame();
   const fps = AUTHOR_FPS;
+  const c = useCopy();
 
   const panelIn = spring({
     frame: frame - 10,
@@ -141,7 +135,7 @@ export const Scene04: React.FC = () => {
       >
         <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14}}>
           <Eyebrow delay={4} fontSize={36}>
-            Origem dos dados
+            {c.scene04.eyebrow}
           </Eyebrow>
 
           <div
@@ -167,11 +161,11 @@ export const Scene04: React.FC = () => {
                 color: colors.textPrimary,
               }}
             >
-              Campo Fonte
+              {c.scene04.fieldSource}
             </span>
             <Pill bg={colors.successSoft} color="#166534" border={colors.success} fontSize={24}>
               <BadgeCheck size={24} color="#166534" />
-              Validado · 12/07/2026
+              {c.scene04.validated}
             </Pill>
             <span
               style={{
@@ -184,7 +178,7 @@ export const Scene04: React.FC = () => {
               }}
             >
               <Link2 size={24} color={colors.textMuted} />
-              3 referências
+              {c.scene04.referencesCount}
               <ExternalLink size={22} color={colors.textMuted} />
             </span>
           </div>
@@ -194,7 +188,7 @@ export const Scene04: React.FC = () => {
       {/* Cards centralizados */}
       <AbsoluteFill style={{alignItems: 'center', justifyContent: 'center'}}>
         <div style={{display: 'flex', gap: 32}}>
-          {SOURCES.map((source, i) => (
+          {c.scene04.seals.map((source, i) => (
             <SourceSeal key={source.name} {...source} delay={60 + i * 22} />
           ))}
         </div>
@@ -210,7 +204,7 @@ export const Scene04: React.FC = () => {
       >
         <div style={{textAlign: 'center', maxWidth: 1400}}>
           <AnimatedText
-            text="Dados documentados e rastreáveis"
+            text={c.scene04.closingTitle}
             delay={190}
             stagger={5}
             style={{
@@ -232,7 +226,7 @@ export const Scene04: React.FC = () => {
               }),
             }}
           >
-            Mais confiabilidade, coerência e rastreabilidade aos cálculos.
+            {c.scene04.closingSubtitle}
           </div>
         </div>
       </AbsoluteFill>

@@ -22,41 +22,40 @@ import {SceneBackground} from '../components/SceneBackground';
 import {Eyebrow} from '../components/Eyebrow';
 import {colors, radius, shadows, type} from '../theme';
 import {fontBody, fontDisplay} from '../fonts';
+import {useCopy} from '../i18n/LocaleContext';
 
 /**
  * Cena 10 (2:42–2:57) — Montagem: grid dinâmico reunindo todas as
  * funcionalidades em movimento sincronizado + texto cinético.
  */
 
-const FEATURES = [
-  {icon: Scale, label: 'Balanceamento', bg: colors.primarySoft, color: colors.primary},
-  {icon: Database, label: 'Ingredientes', bg: '#F5F3FF', color: colors.pacViolet},
-  {icon: ShieldCheck, label: 'Fontes validadas', bg: colors.successSoft, color: colors.success},
-  {icon: Wand2, label: 'Correção automática', bg: colors.primarySoft, color: colors.primary},
-  {icon: FlaskConical, label: 'Neutros', bg: colors.infoSoft, color: colors.info},
-  {icon: Calculator, label: 'Cálculo nutricional', bg: colors.successSoft, color: colors.success},
-  {icon: ClipboardList, label: 'Fichas técnicas', bg: colors.infoSoft, color: colors.info},
-  {icon: Tag, label: 'Rotulagem', bg: colors.warningSoft, color: colors.warning},
-  {icon: Building2, label: 'Fornecedores', bg: colors.primarySoft, color: colors.primary},
-  {icon: ShoppingCart, label: 'Compras', bg: colors.warningSoft, color: colors.warning},
-];
-
-const WORDS = [
-  'Conhecimento técnico.',
-  'Formulação.',
-  'Correção.',
-  'Documentação.',
-  'Ingredientes.',
-];
+const FEATURE_META = [
+  {icon: Scale, bg: colors.primarySoft, color: colors.primary},
+  {icon: Database, bg: '#F5F3FF', color: colors.pacViolet},
+  {icon: ShieldCheck, bg: colors.successSoft, color: colors.success},
+  {icon: Wand2, bg: colors.primarySoft, color: colors.primary},
+  {icon: FlaskConical, bg: colors.infoSoft, color: colors.info},
+  {icon: Calculator, bg: colors.successSoft, color: colors.success},
+  {icon: ClipboardList, bg: colors.infoSoft, color: colors.info},
+  {icon: Tag, bg: colors.warningSoft, color: colors.warning},
+  {icon: Building2, bg: colors.primarySoft, color: colors.primary},
+  {icon: ShoppingCart, bg: colors.warningSoft, color: colors.warning},
+] as const;
 
 export const Scene10: React.FC = () => {
   const frame = useAuthoredFrame();
   const fps = AUTHOR_FPS;
+  const c = useCopy();
+
+  const features = FEATURE_META.map((meta, i) => ({
+    ...meta,
+    label: c.scene10.features[i],
+  }));
 
   return (
     <SceneBackground>
       <AbsoluteFill style={{alignItems: 'center', paddingTop: 60}}>
-        <Eyebrow delay={2}>Tudo em uma única plataforma</Eyebrow>
+        <Eyebrow delay={2}>{c.scene10.eyebrow}</Eyebrow>
       </AbsoluteFill>
 
       {/* Grid de funcionalidades */}
@@ -69,7 +68,7 @@ export const Scene10: React.FC = () => {
             marginTop: -120,
           }}
         >
-          {FEATURES.map((feature, i) => {
+          {features.map((feature, i) => {
             const delay = 16 + i * 7;
             const pop = spring({
               frame: frame - delay,
@@ -133,7 +132,7 @@ export const Scene10: React.FC = () => {
         style={{alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 100}}
       >
         <div style={{display: 'flex', gap: 22, flexWrap: 'wrap', justifyContent: 'center'}}>
-          {WORDS.map((word, i) => {
+          {c.scene10.kinetic.map((word, i) => {
             const delay = 130 + i * 26;
             const pop = spring({
               frame: frame - delay,
@@ -171,7 +170,7 @@ export const Scene10: React.FC = () => {
             }),
           }}
         >
-          Mais organização, mais controle e mais segurança para padronizar resultados.
+          {c.scene10.footer}
         </div>
       </AbsoluteFill>
     </SceneBackground>

@@ -13,6 +13,7 @@ import {AnimatedText} from '../components/AnimatedText';
 import {Pill} from '../components/Pill';
 import {colors, radius, shadows} from '../theme';
 import {fontBody, fontDisplay} from '../fonts';
+import {useCopy} from '../i18n/LocaleContext';
 
 /**
  * Cena 9 — Compra integrada: ingrediente em falta "sai" da
@@ -28,16 +29,18 @@ const RECIPE_POS = {x: 420, y: 520};
 /** Destino do chip (centro do carrinho). */
 const CART_POS = {x: 1480, y: 360};
 
-const INGREDIENTS = [
-  {name: 'Leite integral', qty: '520 g', inStock: true},
-  {name: 'Pistache puro', qty: '80 g', inStock: false},
-  {name: 'Sacarose', qty: '190 g', inStock: true},
-  {name: 'Neutro base branca', qty: '5 g', inStock: true},
-];
+/** Index of the out-of-stock ingredient (Pistache puro). */
+const OUT_OF_STOCK_INDEX = 1;
 
 export const Scene09: React.FC = () => {
   const frame = useAuthoredFrame();
   const fps = AUTHOR_FPS;
+  const c = useCopy();
+
+  const ingredients = c.scene09.ingredients.map((ing, i) => ({
+    ...ing,
+    inStock: i !== OUT_OF_STOCK_INDEX,
+  }));
 
   const recipeIn = spring({frame: frame - 10, fps, config: {damping: 200, stiffness: 90}});
   const cartIn = spring({frame: frame - 40, fps, config: {damping: 13, stiffness: 120, mass: 0.8}});
@@ -77,10 +80,10 @@ export const Scene09: React.FC = () => {
     <SceneBackground>
       <AbsoluteFill style={{alignItems: 'center', paddingTop: 40, gap: 14, zIndex: 5}}>
         <Eyebrow delay={2} fontSize={38}>
-          Fornecedores e compras
+          {c.scene09.eyebrow}
         </Eyebrow>
         <AnimatedText
-          text="Adquira os ingredientes da receita diretamente pela plataforma"
+          text={c.scene09.subtitle}
           delay={12}
           stagger={2}
           style={{
@@ -119,7 +122,7 @@ export const Scene09: React.FC = () => {
               color: colors.textPrimary,
             }}
           >
-            Gelato de Pistache
+            {c.scene09.recipeTitle}
           </span>
           <span
             style={{
@@ -131,11 +134,11 @@ export const Scene09: React.FC = () => {
               color: colors.textMuted,
             }}
           >
-            Receita
+            {c.scene09.recipeBadge}
           </span>
         </div>
         <div style={{marginTop: 24, display: 'flex', flexDirection: 'column', gap: 14}}>
-          {INGREDIENTS.map((ing, i) => {
+          {ingredients.map((ing, i) => {
             const rowIn = interpolate(frame - 30 - i * 8, [0, 10], [0, 1], {
               extrapolateLeft: 'clamp',
               extrapolateRight: 'clamp',
@@ -171,7 +174,7 @@ export const Scene09: React.FC = () => {
                     fontSize: isMissing ? 26 : 28,
                   }}
                 >
-                  {isMissing ? 'em falta' : ing.qty}
+                  {isMissing ? c.scene09.outOfStock : ing.qty}
                 </span>
               </div>
             );
@@ -203,7 +206,7 @@ export const Scene09: React.FC = () => {
           }}
         >
           <Package size={30} color={colors.primary} />
-          Pistache puro · 1 kg
+          {c.scene09.flyingChip}
         </div>
       ) : null}
 
@@ -301,16 +304,16 @@ export const Scene09: React.FC = () => {
                 color: colors.textPrimary,
               }}
             >
-              Distribuidora Gelato Sul
+              {c.scene09.supplierName}
             </span>
             <div style={{display: 'flex', gap: 12, flexWrap: 'wrap'}}>
               <Pill bg={colors.warningSoft} color="#92400E" fontSize={20}>
                 <Star size={20} color="#92400E" fill="#F59E0B" />
-                Fornecedor principal
+                {c.scene09.supplierPrimary}
               </Pill>
               <Pill bg={colors.successSoft} color={colors.success} fontSize={20}>
                 <Truck size={20} color={colors.success} />
-                Entrega em 2 dias
+                {c.scene09.delivery}
               </Pill>
             </div>
           </div>
@@ -336,7 +339,7 @@ export const Scene09: React.FC = () => {
                 color: colors.textMuted,
               }}
             >
-              Pistache puro · 1 kg
+              {c.scene09.productLine}
             </span>
             <span
               style={{
@@ -348,7 +351,7 @@ export const Scene09: React.FC = () => {
                 lineHeight: 1,
               }}
             >
-              R$ 189,90
+              {c.scene09.price}
             </span>
           </div>
           <div
@@ -364,7 +367,7 @@ export const Scene09: React.FC = () => {
               whiteSpace: 'nowrap',
             }}
           >
-            Comprar pela plataforma
+            {c.scene09.buyCta}
           </div>
         </div>
       </div>

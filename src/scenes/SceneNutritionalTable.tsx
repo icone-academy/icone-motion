@@ -14,6 +14,7 @@ import {AnimatedText} from '../components/AnimatedText';
 import {GaugeArc, GaugeZone} from '../components/GaugeArc';
 import {colors, radius, shadows} from '../theme';
 import {fontBody} from '../fonts';
+import {useCopy} from '../i18n/LocaleContext';
 
 /**
  * Cena extra — Tabela nutricional ANVISA (fullscreen) →
@@ -23,27 +24,6 @@ import {fontBody} from '../fonts';
 const TABLE_DUR = 240;
 const IG_DUR = 190;
 const FLOW_AT = 430;
-
-type NutrientRow = {
-  name: string;
-  portion: string;
-  per100: string;
-  vd: string;
-  indent?: boolean;
-};
-
-const NUTRIENT_ROWS: NutrientRow[] = [
-  {name: 'Valor energético (kcal)', portion: '129', per100: '215', vd: '6%'},
-  {name: 'Carboidratos (g)', portion: '14', per100: '24', vd: '5%'},
-  {name: 'Açúcares totais (g)', portion: '13', per100: '21', vd: '—', indent: true},
-  {name: 'Açúcares adicionados (g)', portion: '11', per100: '18', vd: '22%', indent: true},
-  {name: 'Proteínas (g)', portion: '2,3', per100: '3,8', vd: '5%'},
-  {name: 'Gorduras totais (g)', portion: '6,6', per100: '11', vd: '10%'},
-  {name: 'Gorduras saturadas (g)', portion: '3,4', per100: '5,6', vd: '17%', indent: true},
-  {name: 'Gorduras trans (g)', portion: '0', per100: '0', vd: '0%', indent: true},
-  {name: 'Fibra alimentar (g)', portion: '0,5', per100: '0,8', vd: '2%'},
-  {name: 'Sódio (mg)', portion: '27', per100: '45', vd: '1%'},
-];
 
 const IG_ZONES: GaugeZone[] = [
   {from: 0, to: 0.55, color: colors.gaugeGreen},
@@ -56,6 +36,9 @@ const cellBorder = '1.5px solid #1a1a1a';
 const AnvisaNutritionTable: React.FC = () => {
   const frame = useAuthoredFrame();
   const fps = AUTHOR_FPS;
+  const c = useCopy();
+  const anvisa = c.nutritional.anvisa;
+  const rows = anvisa.rows;
 
   const enter = spring({
     frame: frame - 8,
@@ -96,7 +79,7 @@ const AnvisaNutritionTable: React.FC = () => {
             lineHeight: 1.15,
           }}
         >
-          Informação nutricional
+          {anvisa.title}
         </div>
 
         <div
@@ -108,10 +91,10 @@ const AnvisaNutritionTable: React.FC = () => {
           }}
         >
           <div>
-            <strong>Porções por embalagem:</strong> 8
+            <strong>{anvisa.servingsLabel}</strong> {anvisa.servingsValue}
           </div>
           <div>
-            <strong>Porção:</strong> 60 g (1 bola)
+            <strong>{anvisa.portionLabel}</strong> {anvisa.portionValue}
           </div>
         </div>
 
@@ -144,7 +127,7 @@ const AnvisaNutritionTable: React.FC = () => {
                   fontSize: 18,
                 }}
               >
-                60 g
+                {anvisa.colPortion}
               </th>
               <th
                 style={{
@@ -156,7 +139,7 @@ const AnvisaNutritionTable: React.FC = () => {
                   fontSize: 18,
                 }}
               >
-                100 g
+                {anvisa.col100}
               </th>
               <th
                 style={{
@@ -167,17 +150,18 @@ const AnvisaNutritionTable: React.FC = () => {
                   fontSize: 18,
                 }}
               >
-                %VD*
+                {anvisa.colVd}
               </th>
             </tr>
           </thead>
           <tbody>
-            {NUTRIENT_ROWS.map((row, i) => {
+            {rows.map((row, i) => {
               const rowIn = interpolate(frame - 16 - i * 5, [0, 8], [0, 1], {
                 extrapolateLeft: 'clamp',
                 extrapolateRight: 'clamp',
               });
-              const isLast = i === NUTRIENT_ROWS.length - 1;
+              const isLast = i === rows.length - 1;
+              const indent = Boolean(row.indent);
               return (
                 <tr key={row.name} style={{opacity: rowIn}}>
                   <td
@@ -185,8 +169,8 @@ const AnvisaNutritionTable: React.FC = () => {
                       borderBottom: isLast ? 'none' : cellBorder,
                       borderRight: cellBorder,
                       padding: '8px 14px',
-                      paddingLeft: row.indent ? 30 : 14,
-                      fontWeight: row.indent ? 500 : 700,
+                      paddingLeft: indent ? 30 : 14,
+                      fontWeight: indent ? 500 : 700,
                     }}
                   >
                     {row.name}
@@ -238,9 +222,7 @@ const AnvisaNutritionTable: React.FC = () => {
             color: '#333',
           }}
         >
-          *Percentual de valores diários com base em uma dieta de 2.000 kcal ou 8.400 kJ.
-          Seus valores diários podem ser maiores ou menores dependendo de suas necessidades
-          energéticas.
+          {anvisa.footer}
         </div>
       </div>
 
@@ -271,9 +253,10 @@ const AnvisaNutritionTable: React.FC = () => {
             fontWeight: 500,
           }}
         >
-          Tabela elaborada conforme as normas da{' '}
-          <span style={{fontWeight: 700, color: colors.textPrimary}}>ANVISA</span>
-          {' '}(RDC nº 429/2020 e IN nº 75/2020).
+          {anvisa.badge}{' '}
+          <span style={{fontWeight: 700, color: colors.textPrimary}}>
+            {anvisa.badgeNorm}
+          </span>
         </span>
       </div>
     </div>
@@ -283,6 +266,7 @@ const AnvisaNutritionTable: React.FC = () => {
 const GlycemicFocus: React.FC = () => {
   const frame = useAuthoredFrame();
   const fps = AUTHOR_FPS;
+  const c = useCopy();
 
   const enter = spring({
     frame: frame - 4,
@@ -302,13 +286,13 @@ const GlycemicFocus: React.FC = () => {
       }}
     >
       <GaugeArc
-        label="Índice glicêmico"
+        label={c.nutritional.glycemicLabel}
         value="32"
         fraction={0.32}
         zones={IG_ZONES}
         delay={10}
         size={420}
-        statusLabel="Baixo"
+        statusLabel={c.nutritional.glycemicStatus}
         statusBg={colors.successSoft}
         statusColor={colors.success}
         bare
@@ -328,9 +312,7 @@ const GlycemicFocus: React.FC = () => {
           }),
         }}
       >
-        Mais uma camada de precisão para produtos
-        <br />
-        com restrição de açúcar.
+        {c.nutritional.glycemicCaption}
       </span>
     </div>
   );
@@ -339,6 +321,7 @@ const GlycemicFocus: React.FC = () => {
 export const SceneNutritionalTable: React.FC = () => {
   const frame = useAuthoredFrame();
   const fps = AUTHOR_FPS;
+  const c = useCopy();
 
   const flowIn = spring({
     frame: frame - FLOW_AT,
@@ -353,13 +336,13 @@ export const SceneNutritionalTable: React.FC = () => {
     <SceneBackground>
       <AbsoluteFill style={{alignItems: 'center', paddingTop: 28, gap: 6, zIndex: 5}}>
         <Eyebrow delay={2} fontSize={32}>
-          Nutrição da receita
+          {c.nutritional.eyebrow}
         </Eyebrow>
         <AnimatedText
           text={
             showIg
-              ? 'Índice glicêmico calculado automaticamente'
-              : 'Tabela nutricional completa — gerada automaticamente a partir dos ingredientes'
+              ? c.nutritional.subtitleGlycemic
+              : c.nutritional.subtitleTable
           }
           delay={showIg ? TABLE_DUR + 6 : 12}
           stagger={2}
@@ -425,7 +408,7 @@ export const SceneNutritionalTable: React.FC = () => {
                 color: colors.textSecondary,
               }}
             >
-              Alimenta automaticamente
+              {c.nutritional.feedsAutomatically}
             </span>
             <ArrowRight size={30} color={colors.primaryMuted} />
             <span
@@ -440,7 +423,7 @@ export const SceneNutritionalTable: React.FC = () => {
               }}
             >
               <ClipboardList size={30} color={colors.info} />
-              Ficha técnica
+              {c.nutritional.techSheet}
             </span>
             <ArrowRight size={30} color={colors.primaryMuted} />
             <span
@@ -455,7 +438,7 @@ export const SceneNutritionalTable: React.FC = () => {
               }}
             >
               <Tag size={30} color={colors.warning} />
-              Rotulagem
+              {c.nutritional.labeling}
             </span>
           </div>
         </AbsoluteFill>

@@ -4,7 +4,6 @@ import {
   interpolate,
   Sequence,
   spring,
-  useVideoConfig,
 } from 'remotion';
 import {AUTHOR_FPS, DUR, T, useAuthoredFrame} from '../timeline';
 import {
@@ -29,6 +28,8 @@ import {Pill} from '../components/Pill';
 import {GaugeBar} from '../components/GaugeBar';
 import {colors, radius, shadows} from '../theme';
 import {fontBody, fontDisplay} from '../fonts';
+import {useCopy} from '../i18n/LocaleContext';
+import type {Copy} from '../i18n/copy';
 
 /**
  * Cena 3 — Banco de ingredientes em beats fullscreen (como a receita):
@@ -52,31 +53,42 @@ export const SCENE03_TOTAL =
   BEAT.dosagem +
   BEAT.fonte; // 510
 
-const TABS = ['Geral', 'Composição', 'Tabela nutricional', 'Dosagem', 'Fonte'] as const;
-type TabName = (typeof TABS)[number];
+/** Stable tab keys — UI labels come from copy.scene03.tabs */
+type TabKey = 'geral' | 'composicao' | 'nutricao' | 'dosagem' | 'fonte';
+const TAB_KEYS: TabKey[] = ['geral', 'composicao', 'nutricao', 'dosagem', 'fonte'];
 
 /** Dentro do beat da lista: destaque → chips voam → fade. */
 const CHIPS_FLY = 88;
 
-const ROWS = [
-  {name: 'Leite em pó desnatado', family: 'Lácteos', agua: 0.04, gordura: 0.1, acucar: 0.52, pac: 0.5, pod: 0.42},
-  {name: 'Pistache puro', family: 'Oleaginosas', agua: 0.05, gordura: 0.45, acucar: 0.08, pac: 0.3, pod: 0.1},
-  {name: 'Sacarose', family: 'Açúcares', agua: 0.0, gordura: 0.0, acucar: 1.0, pac: 1.0, pod: 1.0},
-  {name: 'Dextrose', family: 'Açúcares', agua: 0.08, gordura: 0.0, acucar: 0.92, pac: 1.9, pod: 0.74},
-  {name: 'Creme de leite 35%', family: 'Lácteos', agua: 0.59, gordura: 0.35, acucar: 0.03, pac: 0.06, pod: 0.03},
-  {name: 'Polpa de morango', family: 'Frutas', agua: 0.9, gordura: 0.0, acucar: 0.07, pac: 0.08, pod: 0.06},
+const ROW_METRICS = [
+  {agua: 0.04, gordura: 0.1, acucar: 0.52, pac: 0.5, pod: 0.42},
+  {agua: 0.05, gordura: 0.45, acucar: 0.08, pac: 0.3, pod: 0.1},
+  {agua: 0.0, gordura: 0.0, acucar: 1.0, pac: 1.0, pod: 1.0},
+  {agua: 0.08, gordura: 0.0, acucar: 0.92, pac: 1.9, pod: 0.74},
+  {agua: 0.59, gordura: 0.35, acucar: 0.03, pac: 0.06, pod: 0.03},
+  {agua: 0.9, gordura: 0.0, acucar: 0.07, pac: 0.08, pod: 0.06},
 ];
 
 const CHIP_ORIGIN = {x: 960, y: 520};
 
-const FLYING_CHIPS = [
-  {label: 'Quanto usar', value: '8–11%', icon: Scale, bg: colors.warningSoft, color: colors.warning, to: {x: 280, y: 200}},
-  {label: 'Temperatura', value: '65–70 °C', icon: Thermometer, bg: colors.infoSoft, color: colors.info, to: {x: 1640, y: 220}},
-  {label: 'Inserção', value: 'Pós-pasteurização', icon: Snowflake, bg: colors.primarySoft, color: colors.primary, to: {x: 260, y: 860}},
-  {label: 'Gordura', value: '45%', icon: FlaskConical, bg: '#FEF3C7', color: colors.fatAmber, to: {x: 1660, y: 840}},
-  {label: 'Dose máx.', value: '12%', icon: ClipboardList, bg: colors.dangerSoft, color: colors.danger, to: {x: 420, y: 140}},
-  {label: 'PAC · POD', value: '0,50 · 0,42', icon: Link2, bg: '#F5F3FF', color: colors.pacViolet, to: {x: 1500, y: 140}},
-];
+const CHIP_META = [
+  {icon: Scale, bg: colors.warningSoft, color: colors.warning, to: {x: 280, y: 200}},
+  {icon: Thermometer, bg: colors.infoSoft, color: colors.info, to: {x: 1640, y: 220}},
+  {icon: Snowflake, bg: colors.primarySoft, color: colors.primary, to: {x: 260, y: 860}},
+  {icon: FlaskConical, bg: '#FEF3C7', color: colors.fatAmber, to: {x: 1660, y: 840}},
+  {icon: ClipboardList, bg: colors.dangerSoft, color: colors.danger, to: {x: 420, y: 140}},
+  {icon: Link2, bg: '#F5F3FF', color: colors.pacViolet, to: {x: 1500, y: 140}},
+] as const;
+
+type FlyingChipProps = {
+  label: string;
+  value: string;
+  icon: (typeof CHIP_META)[number]['icon'];
+  bg: string;
+  color: string;
+  to: {x: number; y: number};
+  index: number;
+};
 
 const MiniMetric: React.FC<{fraction: number; color: string; grow: number}> = ({
   fraction,
@@ -103,7 +115,7 @@ const MiniMetric: React.FC<{fraction: number; color: string; grow: number}> = ({
   </div>
 );
 
-const FlyingChip: React.FC<(typeof FLYING_CHIPS)[number] & {index: number}> = ({
+const FlyingChip: React.FC<FlyingChipProps> = ({
   label,
   value,
   icon: Icon,
@@ -195,23 +207,24 @@ const FlyingChip: React.FC<(typeof FLYING_CHIPS)[number] & {index: number}> = ({
 };
 
 const TabsBar: React.FC<{
-  active: TabName;
+  active: TabKey;
   tabIndex: number;
   duration: number;
-}> = ({active, tabIndex, duration}) => {
+  tabs: Copy['scene03']['tabs'];
+}> = ({active, tabIndex, duration, tabs}) => {
   const frame = useAuthoredFrame();
   const local = Math.min(1, Math.max(0, frame / Math.max(1, duration - 1)));
-  const progressPct = ((tabIndex + local) / TABS.length) * 100;
+  const progressPct = ((tabIndex + local) / TAB_KEYS.length) * 100;
 
   return (
     <div style={{marginBottom: 4, flexShrink: 0}}>
       <div style={{display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap'}}>
-        {TABS.map((tab, i) => {
-          const isActive = tab === active;
+        {TAB_KEYS.map((key, i) => {
+          const isActive = key === active;
           const visited = i < tabIndex;
           return (
             <span
-              key={tab}
+              key={key}
               style={{
                 fontFamily: fontBody,
                 fontWeight: 600,
@@ -233,7 +246,7 @@ const TabsBar: React.FC<{
                     : colors.textMuted,
               }}
             >
-              {tab}
+              {tabs[i]}
             </span>
           );
         })}
@@ -262,6 +275,19 @@ const TabsBar: React.FC<{
 const BeatList: React.FC = () => {
   const frame = useAuthoredFrame();
   const fps = AUTHOR_FPS;
+  const c = useCopy();
+
+  const rows = ROW_METRICS.map((metrics, i) => ({
+    ...metrics,
+    name: c.scene03.ingredients[i].name,
+    family: c.scene03.ingredients[i].family,
+  }));
+
+  const flyingChips = CHIP_META.map((meta, i) => ({
+    ...meta,
+    label: c.scene03.flyingChips[i].label,
+    value: c.scene03.flyingChips[i].value,
+  }));
 
   const highlight = spring({
     frame: frame - 55,
@@ -317,7 +343,7 @@ const BeatList: React.FC = () => {
                   color: colors.textPrimary,
                 }}
               >
-                Banco de Ingredientes
+                {c.scene03.bankTitle}
               </span>
               <div
                 style={{
@@ -333,7 +359,7 @@ const BeatList: React.FC = () => {
                 }}
               >
                 <Search size={26} color={colors.textMuted} />
-                Buscar ingrediente...
+                {c.scene03.searchPlaceholder}
               </div>
             </div>
             <div
@@ -351,7 +377,7 @@ const BeatList: React.FC = () => {
               }}
             >
               <Plus size={26} color={colors.textInverse} />
-              Novo Ingrediente
+              {c.scene03.newIngredient}
             </div>
           </div>
 
@@ -369,16 +395,12 @@ const BeatList: React.FC = () => {
               color: colors.textMuted,
             }}
           >
-            <span>Nome</span>
-            <span>Família</span>
-            <span>Água</span>
-            <span>Gordura</span>
-            <span>Açúcares</span>
-            <span>PAC</span>
-            <span>POD</span>
+            {c.scene03.tableHeaders.map((header) => (
+              <span key={header}>{header}</span>
+            ))}
           </div>
 
-          {ROWS.map((row, i) => {
+          {rows.map((row, i) => {
             const delay = 18 + i * 12;
             const enter = spring({
               frame: frame - delay,
@@ -445,7 +467,7 @@ const BeatList: React.FC = () => {
       </AbsoluteFill>
 
       {frame >= CHIPS_FLY
-        ? FLYING_CHIPS.map((chip, i) => (
+        ? flyingChips.map((chip, i) => (
             <FlyingChip key={chip.label} {...chip} index={i} />
           ))
         : null}
@@ -547,16 +569,17 @@ const InfoCard: React.FC<{
   );
 };
 
+const COMPAT_TINTS = [colors.success, colors.primary, colors.warning, colors.danger];
+
 const TabGeral: React.FC<{delay: number}> = ({delay}) => {
   const frame = useAuthoredFrame();
   const fps = AUTHOR_FPS;
+  const c = useCopy();
 
-  const compat = [
-    {label: 'Combina', value: 'Dextrose + leite em pó', tint: colors.success},
-    {label: 'Sinergia', value: 'Creme 35%', tint: colors.primary},
-    {label: 'Substitui', value: 'Pasta de avelã (com ajuste)', tint: colors.warning},
-    {label: 'Evitar', value: 'Excesso de água livre', tint: colors.danger},
-  ];
+  const compat = c.scene03.compatibilities.map((item, i) => ({
+    ...item,
+    tint: COMPAT_TINTS[i],
+  }));
 
   const stripIn = spring({
     frame: frame - delay - 14,
@@ -577,33 +600,21 @@ const TabGeral: React.FC<{delay: number}> = ({delay}) => {
     >
       <InfoCard
         icon={Nut}
-        title="Identidade"
+        title={c.scene03.identityTitle}
         bg={colors.successSoft}
         color={colors.success}
         delay={delay}
         dense
-        lines={[
-          'Nome · Pistache puro (pasta 100%)',
-          'Família · Oleaginosas',
-          'Tipo · Ingrediente simples',
-          'Origem · Pasta de pistache verde',
-          'Status · Ativo no workspace',
-        ]}
+        lines={[...c.scene03.identityLines]}
       />
       <InfoCard
         icon={Snowflake}
-        title="Aplicações práticas"
+        title={c.scene03.applicationsTitle}
         bg={colors.primarySoft}
         color={colors.primary}
         delay={delay + 8}
         dense
-        lines={[
-          'Gelato premium de pistache',
-          'Base branca e mantecados',
-          'Overrun sugerido · 25–35%',
-          'Conservar pasta refrigerada',
-          'Sabor intenso · dose controlada',
-        ]}
+        lines={[...c.scene03.applicationsLines]}
       />
 
       <div
@@ -645,7 +656,7 @@ const TabGeral: React.FC<{delay: number}> = ({delay}) => {
               color: colors.textPrimary,
             }}
           >
-            Compatibilidades
+            {c.scene03.compatibilitiesTitle}
           </span>
         </div>
 
@@ -712,15 +723,21 @@ const TabGeral: React.FC<{delay: number}> = ({delay}) => {
   );
 };
 
+const COMPOSITION_VALUES = [
+  {value: '5%', fraction: 0.05, color: colors.primary},
+  {value: '45%', fraction: 0.45, color: colors.fatAmberBar},
+  {value: '8%', fraction: 0.08, color: colors.sugarPinkBar},
+  {value: '20%', fraction: 0.2, color: colors.pacViolet},
+  {value: '95%', fraction: 0.95, color: colors.success},
+  {value: '10%', fraction: 0.1, color: colors.gaugeSlate},
+];
+
 const TabComposicao: React.FC<{delay: number}> = ({delay}) => {
-  const metrics = [
-    {label: 'Água', value: '5%', fraction: 0.05, color: colors.primary},
-    {label: 'Gordura', value: '45%', fraction: 0.45, color: colors.fatAmberBar},
-    {label: 'Açúcares', value: '8%', fraction: 0.08, color: colors.sugarPinkBar},
-    {label: 'Proteína', value: '20%', fraction: 0.2, color: colors.pacViolet},
-    {label: 'Sólidos totais', value: '95%', fraction: 0.95, color: colors.success},
-    {label: 'Fibras', value: '10%', fraction: 0.1, color: colors.gaugeSlate},
-  ];
+  const c = useCopy();
+  const metrics = COMPOSITION_VALUES.map((m, i) => ({
+    ...m,
+    label: c.scene03.compositionLabels[i],
+  }));
 
   return (
     <div style={{display: 'flex', flexDirection: 'column', gap: 28, height: '100%'}}>
@@ -758,25 +775,31 @@ const TabComposicao: React.FC<{delay: number}> = ({delay}) => {
           POD · 0,42
         </Pill>
         <Pill bg={colors.successSoft} color={colors.success} fontSize={28} style={{padding: '14px 22px'}}>
-          SLNG · 50%
+          {c.scene03.compositionSlng}
         </Pill>
       </div>
     </div>
   );
 };
 
+const NUTRITION_TARGETS = [
+  {target: 562, unit: 'kcal', decimals: 0},
+  {target: 28, unit: 'g', decimals: 0},
+  {target: 8, unit: 'g', decimals: 0},
+  {target: 45, unit: 'g', decimals: 0},
+  {target: 5.5, unit: 'g', decimals: 1},
+  {target: 20, unit: 'g', decimals: 0},
+  {target: 10, unit: 'g', decimals: 0},
+  {target: 5, unit: 'mg', decimals: 0},
+];
+
 const TabNutricao: React.FC<{delay: number}> = ({delay}) => {
   const frame = useAuthoredFrame();
-  const rows = [
-    {name: 'Valor energético', target: 562, unit: 'kcal', decimals: 0},
-    {name: 'Carboidratos', target: 28, unit: 'g', decimals: 0},
-    {name: 'Açúcares totais', target: 8, unit: 'g', decimals: 0},
-    {name: 'Gorduras totais', target: 45, unit: 'g', decimals: 0},
-    {name: 'Gorduras saturadas', target: 5.5, unit: 'g', decimals: 1},
-    {name: 'Proteínas', target: 20, unit: 'g', decimals: 0},
-    {name: 'Fibras alimentares', target: 10, unit: 'g', decimals: 0},
-    {name: 'Sódio', target: 5, unit: 'mg', decimals: 0},
-  ];
+  const c = useCopy();
+  const rows = NUTRITION_TARGETS.map((meta, i) => ({
+    ...meta,
+    name: c.scene03.nutritionRows[i],
+  }));
 
   return (
     <div
@@ -799,10 +822,10 @@ const TabNutricao: React.FC<{delay: number}> = ({delay}) => {
         }}
       >
         <span style={{fontWeight: 700, fontSize: 40, color: colors.textPrimary}}>
-          Tabela nutricional
+          {c.scene03.nutritionTitle}
         </span>
         <span style={{fontSize: 30, color: colors.textMuted, fontWeight: 500}}>
-          por 100 g
+          {c.scene03.nutritionPer100}
         </span>
       </div>
       {rows.map((row, i) => {
@@ -846,36 +869,23 @@ const TabNutricao: React.FC<{delay: number}> = ({delay}) => {
   );
 };
 
+const DOSAGE_HERO_META = [
+  {icon: Scale, tint: colors.warning, soft: colors.warningSoft},
+  {icon: Thermometer, tint: colors.info, soft: colors.infoSoft},
+  {icon: Snowflake, tint: colors.primary, soft: colors.primarySoft},
+] as const;
+
 const TabDosagem: React.FC<{delay: number}> = ({delay}) => {
   const frame = useAuthoredFrame();
   const fps = AUTHOR_FPS;
+  const c = useCopy();
 
-  const heroItems = [
-    {
-      icon: Scale,
-      label: 'Quanto usar',
-      value: '8–11%',
-      sub: 'da mistura final',
-      tint: colors.warning,
-      soft: colors.warningSoft,
-    },
-    {
-      icon: Thermometer,
-      label: 'Temperatura',
-      value: '65–70 °C',
-      sub: 'na inserção',
-      tint: colors.info,
-      soft: colors.infoSoft,
-    },
-    {
-      icon: Snowflake,
-      label: 'Momento',
-      value: 'Pós-pasteurização',
-      sub: 'antes do aging',
-      tint: colors.primary,
-      soft: colors.primarySoft,
-    },
-  ];
+  const heroItems = DOSAGE_HERO_META.map((meta, i) => ({
+    ...meta,
+    label: c.scene03.dosageHero[i].label,
+    value: c.scene03.dosageHero[i].value,
+    sub: c.scene03.dosageHero[i].sub,
+  }));
 
   return (
     <div style={{display: 'flex', flexDirection: 'column', gap: 22, height: '100%'}}>
@@ -939,32 +949,22 @@ const TabDosagem: React.FC<{delay: number}> = ({delay}) => {
       <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, flex: 1, minHeight: 0}}>
         <InfoCard
           icon={ClipboardList}
-          title="Limites e protocolo"
+          title={c.scene03.limitsTitle}
           bg={colors.dangerSoft}
           color={colors.danger}
           delay={delay + 28}
           highlight
           dense
-          lines={[
-            'Dose máxima · 12% da mistura',
-            'Homogeneizar 2–3 min após inserção',
-            'Não aquecer acima de 75 °C',
-            'Incorporar com mixer ou turbo',
-          ]}
+          lines={[...c.scene03.limitsLines]}
         />
         <InfoCard
           icon={FlaskConical}
-          title="Efeito na receita"
+          title={c.scene03.effectTitle}
           bg="#F5F3FF"
           color={colors.pacViolet}
           delay={delay + 36}
           dense
-          lines={[
-            'Eleva gordura e sólidos totais',
-            'Contribui pouco para PAC/POD',
-            'Cor e sabor característicos',
-            'Ajustar açúcares se dose > 10%',
-          ]}
+          lines={[...c.scene03.effectLines]}
         />
       </div>
     </div>
@@ -974,12 +974,7 @@ const TabDosagem: React.FC<{delay: number}> = ({delay}) => {
 const TabFonte: React.FC<{delay: number}> = ({delay}) => {
   const frame = useAuthoredFrame();
   const fps = AUTHOR_FPS;
-
-  const sources = [
-    {name: 'Ficha do fabricante', detail: 'Pasta 100% pistache · lote 2026'},
-    {name: 'TBCA', detail: 'Tabela Brasileira de Composição'},
-    {name: 'USDA', detail: 'FoodData Central · referência cruzada'},
-  ];
+  const c = useCopy();
 
   const bannerIn = spring({
     frame: frame - delay,
@@ -1012,19 +1007,19 @@ const TabFonte: React.FC<{delay: number}> = ({delay}) => {
               color: colors.textPrimary,
             }}
           >
-            Dados documentados e rastreáveis
+            {c.scene03.sourceBanner}
           </span>
           <div style={{fontFamily: fontBody, fontSize: 28, color: colors.textMuted, marginTop: 6}}>
-            Última validação · 12/07/2026 · Confiança alta
+            {c.scene03.sourceValidation}
           </div>
         </div>
         <Pill bg={colors.surface} color="#166534" border={colors.success} fontSize={26}>
           <BadgeCheck size={26} color="#166534" />
-          Validado
+          {c.scene03.sourceValidated}
         </Pill>
       </div>
 
-      {sources.map((source, i) => {
+      {c.scene03.sources.map((source, i) => {
         const enter = spring({
           frame: frame - delay - 14 - i * 10,
           fps,
@@ -1084,84 +1079,93 @@ const TabFonte: React.FC<{delay: number}> = ({delay}) => {
   );
 };
 
-const TabContent: React.FC<{tab: TabName; delay: number}> = ({tab, delay}) => {
+const TabContent: React.FC<{tab: TabKey; delay: number}> = ({tab, delay}) => {
   switch (tab) {
-    case 'Geral':
+    case 'geral':
       return <TabGeral delay={delay} />;
-    case 'Composição':
+    case 'composicao':
       return <TabComposicao delay={delay} />;
-    case 'Tabela nutricional':
+    case 'nutricao':
       return <TabNutricao delay={delay} />;
-    case 'Dosagem':
+    case 'dosagem':
       return <TabDosagem delay={delay} />;
-    case 'Fonte':
+    case 'fonte':
       return <TabFonte delay={delay} />;
   }
 };
 
 const BeatTab: React.FC<{
-  active: TabName;
+  active: TabKey;
   tabIndex: number;
   duration: number;
-}> = ({active, tabIndex, duration}) => (
-  <SceneBackground>
-    <AbsoluteFill
-      style={{
-        padding: '24px 56px 28px',
-        flexDirection: 'column',
-        gap: 12,
-      }}
-    >
-      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexShrink: 0}}>
-        <div>
-          <Eyebrow delay={2} fontSize={28}>
-            Banco de Ingredientes
-          </Eyebrow>
+}> = ({active, tabIndex, duration}) => {
+  const c = useCopy();
+
+  return (
+    <SceneBackground>
+      <AbsoluteFill
+        style={{
+          padding: '24px 56px 28px',
+          flexDirection: 'column',
+          gap: 12,
+        }}
+      >
+        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexShrink: 0}}>
+          <div>
+            <Eyebrow delay={2} fontSize={28}>
+              {c.scene03.bankTitle}
+            </Eyebrow>
+            <div
+              style={{
+                fontFamily: fontDisplay,
+                fontWeight: 700,
+                fontSize: 46,
+                color: colors.primary,
+                marginTop: 6,
+              }}
+            >
+              {c.scene03.detailTitle}
+            </div>
+            <div style={{display: 'flex', gap: 12, marginTop: 10}}>
+              <Pill bg={colors.primarySoft} color={colors.primary} fontSize={18}>
+                {c.scene03.detailPills[0]}
+              </Pill>
+              <Pill bg={colors.successSoft} color={colors.success} fontSize={18}>
+                {c.scene03.detailPills[1]}
+              </Pill>
+            </div>
+          </div>
           <div
             style={{
-              fontFamily: fontDisplay,
-              fontWeight: 700,
-              fontSize: 46,
-              color: colors.primary,
-              marginTop: 6,
+              width: 84,
+              height: 84,
+              borderRadius: '50%',
+              background: `linear-gradient(145deg, #D1FAE5 0%, #A7F3D0 55%, ${colors.warningSoft} 100%)`,
+              border: `2.5px solid ${colors.success}`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: shadows.md,
             }}
           >
-            Pistache puro
-          </div>
-          <div style={{display: 'flex', gap: 12, marginTop: 10}}>
-            <Pill bg={colors.primarySoft} color={colors.primary} fontSize={18}>
-              Ingrediente simples
-            </Pill>
-            <Pill bg={colors.successSoft} color={colors.success} fontSize={18}>
-              Oleaginosa
-            </Pill>
+            <Nut size={42} color={colors.success} strokeWidth={1.7} />
           </div>
         </div>
-        <div
-          style={{
-            width: 84,
-            height: 84,
-            borderRadius: '50%',
-            background: `linear-gradient(145deg, #D1FAE5 0%, #A7F3D0 55%, ${colors.warningSoft} 100%)`,
-            border: `2.5px solid ${colors.success}`,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: shadows.md,
-          }}
-        >
-          <Nut size={42} color={colors.success} strokeWidth={1.7} />
+
+        <TabsBar
+          active={active}
+          tabIndex={tabIndex}
+          duration={duration}
+          tabs={c.scene03.tabs}
+        />
+
+        <div style={{flex: 1, minHeight: 0, overflow: 'hidden'}}>
+          <TabContent tab={active} delay={6} />
         </div>
-      </div>
-
-      <TabsBar active={active} tabIndex={tabIndex} duration={duration} />
-
-      <div style={{flex: 1, minHeight: 0, overflow: 'hidden'}}>
-        <TabContent tab={active} delay={6} />
-      </div>
-    </AbsoluteFill>
-  </SceneBackground>
-);
+      </AbsoluteFill>
+    </SceneBackground>
+  );
+};
 
 export const Scene03: React.FC = () => {
   const fromGeral = T(BEAT.list);
@@ -1178,19 +1182,19 @@ export const Scene03: React.FC = () => {
           <BeatList />
         </Sequence>
         <Sequence from={fromGeral} durationInFrames={T(BEAT.geral)} name="Geral">
-          <BeatTab active="Geral" tabIndex={0} duration={BEAT.geral} />
+          <BeatTab active="geral" tabIndex={0} duration={BEAT.geral} />
         </Sequence>
         <Sequence from={fromComposicao} durationInFrames={T(BEAT.composicao)} name="Composição">
-          <BeatTab active="Composição" tabIndex={1} duration={BEAT.composicao} />
+          <BeatTab active="composicao" tabIndex={1} duration={BEAT.composicao} />
         </Sequence>
         <Sequence from={fromNutricao} durationInFrames={T(BEAT.nutricao)} name="Tabela nutricional">
-          <BeatTab active="Tabela nutricional" tabIndex={2} duration={BEAT.nutricao} />
+          <BeatTab active="nutricao" tabIndex={2} duration={BEAT.nutricao} />
         </Sequence>
         <Sequence from={fromDosagem} durationInFrames={T(BEAT.dosagem)} name="Dosagem">
-          <BeatTab active="Dosagem" tabIndex={3} duration={BEAT.dosagem} />
+          <BeatTab active="dosagem" tabIndex={3} duration={BEAT.dosagem} />
         </Sequence>
         <Sequence from={fromFonte} durationInFrames={fonteDur} name="Fonte">
-          <BeatTab active="Fonte" tabIndex={4} duration={BEAT.fonte} />
+          <BeatTab active="fonte" tabIndex={4} duration={BEAT.fonte} />
         </Sequence>
       </AbsoluteFill>
     </SceneFade>

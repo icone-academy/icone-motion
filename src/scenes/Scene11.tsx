@@ -5,9 +5,8 @@ import {
   interpolate,
   spring,
   staticFile,
-  useVideoConfig,
 } from 'remotion';
-import {AUTHOR_FPS, T, useAuthoredFrame} from '../timeline';
+import {AUTHOR_FPS, useAuthoredFrame} from '../timeline';
 import {Globe, Sparkles} from 'lucide-react';
 import {SceneBackground} from '../components/SceneBackground';
 import {LogoReveal} from '../components/LogoReveal';
@@ -15,16 +14,16 @@ import {AnimatedText} from '../components/AnimatedText';
 import {Pill} from '../components/Pill';
 import {colors, radius, shadows, tracking, type} from '../theme';
 import {fontBody, fontDisplay} from '../fonts';
+import {useCopy} from '../i18n/LocaleContext';
 
 /**
- * Cena 11 — Encerramento: logo centralizado, marca
- * "ICone — Inteligência para Gelato", CTA de lançamento e
- * QR code real apontando para https://icone.academy.
+ * Cena 11 — Encerramento: logo, marca, CTA de lançamento e QR.
  */
 
 export const Scene11: React.FC = () => {
   const frame = useAuthoredFrame();
   const fps = AUTHOR_FPS;
+  const c = useCopy();
 
   const ctaPop = spring({
     frame: frame - 96,
@@ -51,7 +50,7 @@ export const Scene11: React.FC = () => {
 
         <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10}}>
           <AnimatedText
-            text="ICONE"
+            text={c.brand.name}
             delay={22}
             style={{
               fontFamily: fontDisplay,
@@ -62,7 +61,7 @@ export const Scene11: React.FC = () => {
             }}
           />
           <AnimatedText
-            text="Inteligência para Gelato"
+            text={c.brand.tagline}
             delay={36}
             stagger={3}
             style={{
@@ -75,7 +74,7 @@ export const Scene11: React.FC = () => {
             }}
           />
           <AnimatedText
-            text="Uma nova forma de formular, corrigir e criar gelato profissional"
+            text={c.scene11.headline}
             delay={52}
             stagger={2}
             style={{
@@ -89,7 +88,6 @@ export const Scene11: React.FC = () => {
           />
         </div>
 
-        {/* CTA */}
         <div
           style={{
             transform: `scale(${ctaPop})`,
@@ -107,10 +105,9 @@ export const Scene11: React.FC = () => {
           }}
         >
           <Sparkles size={30} color={colors.textInverse} />
-          Garanta seu acesso antecipado
+          {c.scene11.cta}
         </div>
 
-        {/* Site + QR code */}
         <div
           style={{
             opacity: contactsIn,
@@ -133,7 +130,7 @@ export const Scene11: React.FC = () => {
             }}
           >
             <Globe size={28} color={colors.primary} />
-            icone.academy
+            {c.scene11.site}
           </div>
           <div
             style={{
@@ -153,12 +150,11 @@ export const Scene11: React.FC = () => {
               style={{width: 150, height: 150, borderRadius: radius.sm}}
             />
             <span style={{fontFamily: fontBody, fontSize: type.caption, color: colors.textMuted}}>
-              Aponte a câmera
+              {c.scene11.qrHint}
             </span>
           </div>
         </div>
 
-        {/* Lançamento */}
         <div style={{opacity: launchIn}}>
           <Pill
             bg={colors.primarySoft}
@@ -172,7 +168,7 @@ export const Scene11: React.FC = () => {
               padding: '12px 32px',
             }}
           >
-            Lançamento · 15 de agosto de 2026
+            {c.scene11.launch}
           </Pill>
         </div>
       </AbsoluteFill>
