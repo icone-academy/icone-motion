@@ -25,11 +25,12 @@ import {useCopy} from '../i18n/LocaleContext';
  * Fabricantes + status de validação. "Dados documentados e rastreáveis".
  */
 
-const SourceSeal: React.FC<{name: string; full: string; delay: number}> = ({
-  name,
-  full,
-  delay,
-}) => {
+const SourceSeal: React.FC<{
+  name: string;
+  full: string;
+  delay: number;
+  compact?: boolean;
+}> = ({name, full, delay, compact = false}) => {
   const frame = useAuthoredFrame();
   const fps = AUTHOR_FPS;
 
@@ -44,17 +45,22 @@ const SourceSeal: React.FC<{name: string; full: string; delay: number}> = ({
     config: {damping: 10, stiffness: 220, mass: 0.5},
   });
 
+  const width = compact ? 280 : 340;
+  const nameSize = compact ? 40 : 52;
+  const iconBox = compact ? 80 : 96;
+  const iconSize = compact ? 40 : 46;
+
   return (
     <div
       style={{
         opacity: Math.min(1, pop * 1.4),
         transform: `scale(${0.7 + pop * 0.3}) translateY(${(1 - pop) * 20}px)`,
-        width: 340,
+        width,
         borderRadius: radius.lg,
         border: `1.5px solid ${colors.border}`,
         backgroundColor: colors.surface,
         boxShadow: shadows.md,
-        padding: '40px 30px',
+        padding: compact ? '32px 22px' : '40px 30px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -68,8 +74,8 @@ const SourceSeal: React.FC<{name: string; full: string; delay: number}> = ({
           top: -18,
           right: -18,
           transform: `scale(${checkPop})`,
-          width: 56,
-          height: 56,
+          width: compact ? 48 : 56,
+          height: compact ? 48 : 56,
           borderRadius: '50%',
           backgroundColor: colors.success,
           display: 'flex',
@@ -78,12 +84,16 @@ const SourceSeal: React.FC<{name: string; full: string; delay: number}> = ({
           boxShadow: shadows.md,
         }}
       >
-        <BadgeCheck size={32} color={colors.textInverse} strokeWidth={2.2} />
+        <BadgeCheck
+          size={compact ? 28 : 32}
+          color={colors.textInverse}
+          strokeWidth={2.2}
+        />
       </div>
       <div
         style={{
-          width: 96,
-          height: 96,
+          width: iconBox,
+          height: iconBox,
           borderRadius: '50%',
           backgroundColor: colors.primarySoft,
           display: 'flex',
@@ -91,20 +101,28 @@ const SourceSeal: React.FC<{name: string; full: string; delay: number}> = ({
           justifyContent: 'center',
         }}
       >
-        <FileText size={46} color={colors.primary} strokeWidth={1.9} />
+        <FileText size={iconSize} color={colors.primary} strokeWidth={1.9} />
       </div>
       <span
         style={{
           fontFamily: fontDisplay,
           fontWeight: 700,
-          fontSize: 52,
+          fontSize: nameSize,
           letterSpacing: '0.06em',
           color: colors.textPrimary,
+          textAlign: 'center',
         }}
       >
         {name}
       </span>
-      <span style={{fontFamily: fontBody, fontSize: 26, color: colors.textMuted, textAlign: 'center'}}>
+      <span
+        style={{
+          fontFamily: fontBody,
+          fontSize: compact ? 22 : 26,
+          color: colors.textMuted,
+          textAlign: 'center',
+        }}
+      >
         {full}
       </span>
     </div>
@@ -187,9 +205,14 @@ export const Scene04: React.FC = () => {
 
       {/* Cards centralizados */}
       <AbsoluteFill style={{alignItems: 'center', justifyContent: 'center'}}>
-        <div style={{display: 'flex', gap: 32}}>
+        <div style={{display: 'flex', gap: c.scene04.seals.length > 4 ? 20 : 32}}>
           {c.scene04.seals.map((source, i) => (
-            <SourceSeal key={source.name} {...source} delay={60 + i * 22} />
+            <SourceSeal
+              key={source.name}
+              {...source}
+              delay={60 + i * 18}
+              compact={c.scene04.seals.length > 4}
+            />
           ))}
         </div>
       </AbsoluteFill>
