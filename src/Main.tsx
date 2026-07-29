@@ -82,7 +82,7 @@ const MainShell: React.FC<{locale: Locale}> = ({locale}) => (
 /** Composição principal PT (~4:02.7 a 60fps). */
 export const Main: React.FC = () => <MainShell locale="pt" />;
 
-/** Composição principal IT (~4:09.7 a 60fps) — VO italiano + copy IT. */
+/** Composição principal IT (~4:11 a 60fps) — VO italiano + copy IT. */
 export const MainIT: React.FC = () => <MainShell locale="it" />;
 
 /** Duração estática para Root (PT). */

@@ -193,20 +193,34 @@ export const it: Copy = {
         name: 'Scheda del produttore',
         detail: 'Pasta 100% pistacchio · lotto 2026',
       },
-      {name: 'TBCA', detail: 'Tabella Brasiliana di Composizione'},
-      {name: 'USDA', detail: 'FoodData Central · riferimento incrociato'},
+      {
+        name: 'CREA',
+        detail:
+          "Consiglio per la ricerca in agricoltura e l'analisi dell'economia agraria",
+      },
+      {
+        name: 'USDA',
+        detail: 'United States Department of Agriculture',
+      },
     ],
   },
   scene04: {
     eyebrow: 'Origine dei dati',
     fieldSource: 'Campo Fonte',
     validated: 'Validato · 12/07/2026',
-    referencesCount: '3 riferimenti',
+    referencesCount: '5 riferimenti',
     seals: [
-      {name: 'USDA', full: 'FoodData Central'},
-      {name: 'TBCA', full: 'Tabella Brasiliana'},
-      {name: 'TACO', full: 'Unicamp'},
-      {name: 'Produttori', full: 'Schede tecniche'},
+      {
+        name: 'CREA',
+        full: "Consiglio per la ricerca in agricoltura e l'analisi dell'economia agraria",
+      },
+      {name: 'Ciqual', full: "Banca dati di composizione dell'ANSES"},
+      {name: 'McCance', full: 'Tabelle di composizione di McCance'},
+      {
+        name: 'USDA',
+        full: 'United States Department of Agriculture',
+      },
+      {name: 'Widdowson', full: 'Tabelle di composizione di Widdowson'},
     ],
     closingTitle: 'Dati documentati e tracciabili',
     closingSubtitle:

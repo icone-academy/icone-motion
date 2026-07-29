@@ -38,7 +38,7 @@ export type AudioProfile = {
 
 export const AUDIO_BY_LOCALE: Record<Locale, AudioProfile> = {
   pt: {file: 'audio/vo.mp3', durationSec: 242.6775},
-  it: {file: 'audio/vo-it.mp3', durationSec: 249.652188},
+  it: {file: 'audio/vo-it.mp3', durationSec: 250.958313},
 };
 
 /** @deprecated use AUDIO_BY_LOCALE.pt — kept for PT Root defaults */
@@ -81,22 +81,22 @@ export const VO_CUTS_PT: CutMap = {
 };
 
 /**
- * Cortes sincronizados ao VO IT (Whisper + revisão manual sobre vo-it-transcript.json).
- * NÃO usar escala linear do PT — o ritmo do italiano é diferente.
+ * Cortes sincronizados ao VO IT (ElevenLabs 2026-07-28 + silence detect / Whisper).
+ * Áudio: public/audio/vo-it.mp3 (~4:10.96).
  */
 export const VO_CUTS_IT: CutMap = {
   scene01: [0.0, 16.66],
-  scene02: [16.66, 28.1],
-  scene03: [28.1, 44.6],
-  scene04: [44.6, 64.4],
-  scene05: [64.4, 143.4],
-  scene08: [131.4, 143.4], // export isolado (VO coberto pela scene05)
-  scene06: [143.4, 158.4],
-  scene07: [158.4, 170.4],
-  sceneReverseEngineering: [170.4, 216.4],
-  scene09: [216.4, 226.4],
-  scene10: [226.4, 238.4],
-  scene11: [238.4, AUDIO_BY_LOCALE.it.durationSec],
+  scene02: [16.66, 27.82],
+  scene03: [27.82, 44.68],
+  scene04: [44.68, 64.01],
+  scene05: [64.01, 147.0],
+  scene08: [134.0, 147.0], // export isolado (etichetta/scheda, coperto na scene05)
+  scene06: [147.0, 159.5],
+  scene07: [159.5, 176.4],
+  sceneReverseEngineering: [176.4, 219.2],
+  scene09: [219.2, 230.0],
+  scene10: [230.0, 240.0],
+  scene11: [240.0, AUDIO_BY_LOCALE.it.durationSec],
 };
 
 /** Alias PT — default das cenas standalone. */
@@ -121,13 +121,13 @@ export const S5_MARKS_PT: Scene05MarksAbs = {
   ctaHighlight: 128.88,
 };
 
-/** Marks IT alinhados ao transcript italiano. */
+/** Marks IT alinhados ao novo VO (ElevenLabs 2026-07-28). */
 export const S5_MARKS_IT: Scene05MarksAbs = {
-  compositionEnd: 88.4, // fim “prima dell'inizio della produzione”
-  gaugesEnd: 104.4, // início interpretação
-  resumoEnd: 110.4, // início sezione spiegazione
-  explanationEnd: 120.4, // início Valori nutrizionali
-  ctaHighlight: 131.4, // “direttamente dalla stessa schermata”
+  compositionEnd: 94.04, // fine “prima dell'inizio della produzione”
+  gaugesEnd: 111.62, // fine interpretazione / inizio Spiegazione
+  resumoEnd: 116.24, // inizio sezione Spiegazione
+  explanationEnd: 125.0, // inizio Valori nutrizionali
+  ctaHighlight: 134.0, // “direttamente dalla stessa schermata”
 };
 
 export const getScene05MarksAbs = (locale: Locale): Scene05MarksAbs =>
