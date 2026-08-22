@@ -31,6 +31,26 @@ import {
   TEASER_WIDTH,
   TeaserVertical15s,
 } from './scenes/TeaserVertical15s';
+import {
+  CAMPAIGN_01_DURATION,
+  CAMPAIGN_01_FPS,
+  Campaign01FormulaNoOlho,
+} from './campaigns/Campaign01FormulaNoOlho';
+import {
+  CAMPAIGN_02_DURATION,
+  CAMPAIGN_02_FPS,
+  Campaign02SuaReceitaMelhor,
+} from './campaigns/Campaign02SuaReceitaMelhor';
+import {
+  CAMPAIGN_03_DURATION,
+  CAMPAIGN_03_FPS,
+  Campaign03ErroCustaCaro,
+} from './campaigns/Campaign03ErroCustaCaro';
+import {
+  CAMPAIGN_04_DURATION,
+  CAMPAIGN_04_FPS,
+  Campaign04DaIdeiaAoRotulo,
+} from './campaigns/Campaign04DaIdeiaAoRotulo';
 
 const base = {
   fps: FPS,
@@ -115,6 +135,122 @@ export const RemotionRoot: React.FC = () => {
         component={TeaserVertical15s}
         durationInFrames={TEASER_DURATION}
         {...teaserBase}
+      />
+
+      {/* Campanha pós-lançamento — Filme 01: “Ainda formula no olho?” */}
+      <Composition
+        id="Campaign01Vertical15s"
+        component={Campaign01FormulaNoOlho}
+        durationInFrames={CAMPAIGN_01_DURATION}
+        fps={CAMPAIGN_01_FPS}
+        width={1080}
+        height={1920}
+        defaultProps={{format: 'vertical'}}
+      />
+      <Composition
+        id="Campaign01Square15s"
+        component={Campaign01FormulaNoOlho}
+        durationInFrames={CAMPAIGN_01_DURATION}
+        fps={CAMPAIGN_01_FPS}
+        width={1080}
+        height={1080}
+        defaultProps={{format: 'square'}}
+      />
+      <Composition
+        id="Campaign01Horizontal15s"
+        component={Campaign01FormulaNoOlho}
+        durationInFrames={CAMPAIGN_01_DURATION}
+        fps={CAMPAIGN_01_FPS}
+        width={1920}
+        height={1080}
+        defaultProps={{format: 'horizontal'}}
+      />
+
+      {/* Campanha pós-lançamento — Filme 02: “Sua receita pode ser melhor” */}
+      <Composition
+        id="Campaign02Vertical20s"
+        component={Campaign02SuaReceitaMelhor}
+        durationInFrames={CAMPAIGN_02_DURATION}
+        fps={CAMPAIGN_02_FPS}
+        width={1080}
+        height={1920}
+        defaultProps={{format: 'vertical'}}
+      />
+      <Composition
+        id="Campaign02Square20s"
+        component={Campaign02SuaReceitaMelhor}
+        durationInFrames={CAMPAIGN_02_DURATION}
+        fps={CAMPAIGN_02_FPS}
+        width={1080}
+        height={1080}
+        defaultProps={{format: 'square'}}
+      />
+      <Composition
+        id="Campaign02Horizontal20s"
+        component={Campaign02SuaReceitaMelhor}
+        durationInFrames={CAMPAIGN_02_DURATION}
+        fps={CAMPAIGN_02_FPS}
+        width={1920}
+        height={1080}
+        defaultProps={{format: 'horizontal'}}
+      />
+
+      {/* Campanha pós-lançamento — Filme 03: “O erro que custa caro” */}
+      <Composition
+        id="Campaign03Vertical24s"
+        component={Campaign03ErroCustaCaro}
+        durationInFrames={CAMPAIGN_03_DURATION}
+        fps={CAMPAIGN_03_FPS}
+        width={1080}
+        height={1920}
+        defaultProps={{format: 'vertical'}}
+      />
+      <Composition
+        id="Campaign03Square24s"
+        component={Campaign03ErroCustaCaro}
+        durationInFrames={CAMPAIGN_03_DURATION}
+        fps={CAMPAIGN_03_FPS}
+        width={1080}
+        height={1080}
+        defaultProps={{format: 'square'}}
+      />
+      <Composition
+        id="Campaign03Horizontal24s"
+        component={Campaign03ErroCustaCaro}
+        durationInFrames={CAMPAIGN_03_DURATION}
+        fps={CAMPAIGN_03_FPS}
+        width={1920}
+        height={1080}
+        defaultProps={{format: 'horizontal'}}
+      />
+
+      {/* Campanha pós-lançamento — Filme 04: “Da ideia ao rótulo” */}
+      <Composition
+        id="Campaign04Vertical30s"
+        component={Campaign04DaIdeiaAoRotulo}
+        durationInFrames={CAMPAIGN_04_DURATION}
+        fps={CAMPAIGN_04_FPS}
+        width={1080}
+        height={1920}
+        defaultProps={{format: 'vertical'}}
+      />
+      <Composition
+        id="Campaign04Square30s"
+        component={Campaign04DaIdeiaAoRotulo}
+        durationInFrames={CAMPAIGN_04_DURATION}
+        fps={CAMPAIGN_04_FPS}
+        width={1080}
+        height={1080}
+        defaultProps={{format: 'square'}}
+      />
+      <Composition
+        id="Campaign04Horizontal30s"
+        component={Campaign04DaIdeiaAoRotulo}
+        durationInFrames={CAMPAIGN_04_DURATION}
+        fps={CAMPAIGN_04_FPS}
+        width={1920}
+        height={1080}
+        defaultProps={{format: 'horizontal'}}
       />
     </>
   );
