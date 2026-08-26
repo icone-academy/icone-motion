@@ -51,6 +51,12 @@ import {
   CAMPAIGN_04_FPS,
   Campaign04DaIdeiaAoRotulo,
 } from './campaigns/Campaign04DaIdeiaAoRotulo';
+import {Campaign05FeitaParaSeuTrabalho} from './campaigns/campaign05/Campaign05FeitaParaSeuTrabalho';
+import {
+  CAMPAIGN_05_CUT_DURATION,
+  CAMPAIGN_05_FPS,
+  CAMPAIGN_05_MASTER_DURATION,
+} from './campaigns/campaign05/types';
 
 const base = {
   fps: FPS,
@@ -251,6 +257,149 @@ export const RemotionRoot: React.FC = () => {
         width={1920}
         height={1080}
         defaultProps={{format: 'horizontal'}}
+      />
+
+      {/* Campanha 05 — “Feita para o seu trabalho” · filme principal */}
+      <Composition
+        id="Campaign05MasterHorizontal75s"
+        component={Campaign05FeitaParaSeuTrabalho}
+        durationInFrames={CAMPAIGN_05_MASTER_DURATION}
+        fps={CAMPAIGN_05_FPS}
+        width={1920}
+        height={1080}
+        defaultProps={{format: 'horizontal', audience: 'master', hookVariant: 'a', withCaptions: true, voiceoverFile: 'audio/campaign-05-master-vo.mp3'}}
+      />
+      <Composition
+        id="Campaign05MasterVertical75s"
+        component={Campaign05FeitaParaSeuTrabalho}
+        durationInFrames={CAMPAIGN_05_MASTER_DURATION}
+        fps={CAMPAIGN_05_FPS}
+        width={1080}
+        height={1920}
+        defaultProps={{format: 'vertical', audience: 'master', hookVariant: 'a', withCaptions: true, voiceoverFile: 'audio/campaign-05-master-vo.mp3'}}
+      />
+      <Composition
+        id="Campaign05MasterSquare75s"
+        component={Campaign05FeitaParaSeuTrabalho}
+        durationInFrames={CAMPAIGN_05_MASTER_DURATION}
+        fps={CAMPAIGN_05_FPS}
+        width={1080}
+        height={1080}
+        defaultProps={{format: 'square', audience: 'master', hookVariant: 'a', withCaptions: true, voiceoverFile: 'audio/campaign-05-master-vo.mp3'}}
+      />
+
+      {/* Campanha 05 — cortes de gelateria/sorveteria */}
+      <Composition
+        id="Campaign05GelateriaHorizontal24s"
+        component={Campaign05FeitaParaSeuTrabalho}
+        durationInFrames={CAMPAIGN_05_CUT_DURATION}
+        fps={CAMPAIGN_05_FPS}
+        width={1920}
+        height={1080}
+        defaultProps={{format: 'horizontal', audience: 'gelateria', hookVariant: 'a', withCaptions: true, voiceoverFile: 'audio/campaign-05-gelateria-a-vo.mp3'}}
+      />
+      <Composition
+        id="Campaign05GelateriaVertical24s"
+        component={Campaign05FeitaParaSeuTrabalho}
+        durationInFrames={CAMPAIGN_05_CUT_DURATION}
+        fps={CAMPAIGN_05_FPS}
+        width={1080}
+        height={1920}
+        defaultProps={{format: 'vertical', audience: 'gelateria', hookVariant: 'a', withCaptions: true, voiceoverFile: 'audio/campaign-05-gelateria-a-vo.mp3'}}
+      />
+      <Composition
+        id="Campaign05GelateriaVertical24sHookB"
+        component={Campaign05FeitaParaSeuTrabalho}
+        durationInFrames={CAMPAIGN_05_CUT_DURATION}
+        fps={CAMPAIGN_05_FPS}
+        width={1080}
+        height={1920}
+        defaultProps={{format: 'vertical', audience: 'gelateria', hookVariant: 'b', withCaptions: true, voiceoverFile: 'audio/campaign-05-gelateria-b-vo.mp3'}}
+      />
+      <Composition
+        id="Campaign05GelateriaSquare24s"
+        component={Campaign05FeitaParaSeuTrabalho}
+        durationInFrames={CAMPAIGN_05_CUT_DURATION}
+        fps={CAMPAIGN_05_FPS}
+        width={1080}
+        height={1080}
+        defaultProps={{format: 'square', audience: 'gelateria', hookVariant: 'a', withCaptions: true, voiceoverFile: 'audio/campaign-05-gelateria-a-vo.mp3'}}
+      />
+
+      {/* Campanha 05 — cortes de especialista técnico */}
+      <Composition
+        id="Campaign05EspecialistaHorizontal24s"
+        component={Campaign05FeitaParaSeuTrabalho}
+        durationInFrames={CAMPAIGN_05_CUT_DURATION}
+        fps={CAMPAIGN_05_FPS}
+        width={1920}
+        height={1080}
+        defaultProps={{format: 'horizontal', audience: 'especialista', hookVariant: 'a', withCaptions: true, voiceoverFile: 'audio/campaign-05-especialista-a-vo.mp3'}}
+      />
+      <Composition
+        id="Campaign05EspecialistaVertical24s"
+        component={Campaign05FeitaParaSeuTrabalho}
+        durationInFrames={CAMPAIGN_05_CUT_DURATION}
+        fps={CAMPAIGN_05_FPS}
+        width={1080}
+        height={1920}
+        defaultProps={{format: 'vertical', audience: 'especialista', hookVariant: 'a', withCaptions: true, voiceoverFile: 'audio/campaign-05-especialista-a-vo.mp3'}}
+      />
+      <Composition
+        id="Campaign05EspecialistaVertical24sHookB"
+        component={Campaign05FeitaParaSeuTrabalho}
+        durationInFrames={CAMPAIGN_05_CUT_DURATION}
+        fps={CAMPAIGN_05_FPS}
+        width={1080}
+        height={1920}
+        defaultProps={{format: 'vertical', audience: 'especialista', hookVariant: 'b', withCaptions: true, voiceoverFile: 'audio/campaign-05-especialista-b-vo.mp3'}}
+      />
+      <Composition
+        id="Campaign05EspecialistaSquare24s"
+        component={Campaign05FeitaParaSeuTrabalho}
+        durationInFrames={CAMPAIGN_05_CUT_DURATION}
+        fps={CAMPAIGN_05_FPS}
+        width={1080}
+        height={1080}
+        defaultProps={{format: 'square', audience: 'especialista', hookVariant: 'a', withCaptions: true, voiceoverFile: 'audio/campaign-05-especialista-a-vo.mp3'}}
+      />
+
+      {/* Campanha 05 — cortes de indústria */}
+      <Composition
+        id="Campaign05IndustriaHorizontal24s"
+        component={Campaign05FeitaParaSeuTrabalho}
+        durationInFrames={CAMPAIGN_05_CUT_DURATION}
+        fps={CAMPAIGN_05_FPS}
+        width={1920}
+        height={1080}
+        defaultProps={{format: 'horizontal', audience: 'industria', hookVariant: 'a', withCaptions: true, voiceoverFile: 'audio/campaign-05-industria-a-vo.mp3'}}
+      />
+      <Composition
+        id="Campaign05IndustriaVertical24s"
+        component={Campaign05FeitaParaSeuTrabalho}
+        durationInFrames={CAMPAIGN_05_CUT_DURATION}
+        fps={CAMPAIGN_05_FPS}
+        width={1080}
+        height={1920}
+        defaultProps={{format: 'vertical', audience: 'industria', hookVariant: 'a', withCaptions: true, voiceoverFile: 'audio/campaign-05-industria-a-vo.mp3'}}
+      />
+      <Composition
+        id="Campaign05IndustriaVertical24sHookB"
+        component={Campaign05FeitaParaSeuTrabalho}
+        durationInFrames={CAMPAIGN_05_CUT_DURATION}
+        fps={CAMPAIGN_05_FPS}
+        width={1080}
+        height={1920}
+        defaultProps={{format: 'vertical', audience: 'industria', hookVariant: 'b', withCaptions: true, voiceoverFile: 'audio/campaign-05-industria-b-vo.mp3'}}
+      />
+      <Composition
+        id="Campaign05IndustriaSquare24s"
+        component={Campaign05FeitaParaSeuTrabalho}
+        durationInFrames={CAMPAIGN_05_CUT_DURATION}
+        fps={CAMPAIGN_05_FPS}
+        width={1080}
+        height={1080}
+        defaultProps={{format: 'square', audience: 'industria', hookVariant: 'a', withCaptions: true, voiceoverFile: 'audio/campaign-05-industria-a-vo.mp3'}}
       />
     </>
   );

@@ -5,9 +5,9 @@
   "description": "Motion graphics institucional da ICone — plataforma para gelateria profissional (Remotion)",
   "scripts": {
     "dev": "remotion studio",
-    "predev": "powershell -ExecutionPolicy Bypass -File scripts/ensure-ffmpeg.ps1",
+    "predev": "node scripts/ensure-ffmpeg.mjs",
     "render": "remotion render Main out/icone-institucional.mp4 --concurrency=4",
-    "prerender": "powershell -ExecutionPolicy Bypass -File scripts/ensure-ffmpeg.ps1",
+    "prerender": "node scripts/ensure-ffmpeg.mjs",
     "render:wsl": "wsl -d Ubuntu-24.04 -- bash scripts/wsl-render.sh Main out/icone-institucional.mp4",
     "render:scene": "remotion render",
     "render:campaign:01": "powershell -ExecutionPolicy Bypass -File scripts/render-campaign-01.ps1",
@@ -18,13 +18,17 @@
     "render:campaign:03:vertical": "remotion render Campaign03Vertical24s out/campaign-03/icone-campaign-03-vertical.mp4 --concurrency=4",
     "render:campaign:04": "powershell -ExecutionPolicy Bypass -File scripts/render-campaign-04.ps1",
     "render:campaign:04:vertical": "remotion render Campaign04Vertical30s out/campaign-04/icone-campaign-04-vertical.mp4 --concurrency=4",
+    "render:campaign:05": "node scripts/render-campaign-05.mjs --include-clean",
+    "render:campaign:05:master": "remotion render Campaign05MasterHorizontal75s out/campaign-05/icone-campaign-05-master-horizontal.mp4 --concurrency=4",
+    "render:campaign:05:vertical": "remotion render Campaign05MasterVertical75s out/campaign-05/icone-campaign-05-master-vertical.mp4 --concurrency=4",
+    "render:campaign:05:ads": "node scripts/render-campaign-05.mjs --only-ads",
     "fix:compositor": "powershell -ExecutionPolicy Bypass -File scripts/fix-compositor.ps1",
-    "fix:ffmpeg": "powershell -ExecutionPolicy Bypass -File scripts/ensure-ffmpeg.ps1",
+    "fix:ffmpeg": "node scripts/ensure-ffmpeg.mjs",
     "typecheck": "tsc --noEmit",
-    "postinstall": "powershell -ExecutionPolicy Bypass -File scripts/ensure-ffmpeg.ps1"
+    "postinstall": "node scripts/ensure-ffmpeg.mjs"
   },
   "engines": {
-    "node": ">=18 <=22"
+    "node": ">=18 <25"
   },
   "dependencies": {
     "@remotion/cli": "4.0.500",

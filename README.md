@@ -11,8 +11,12 @@ Projeto [Remotion](https://www.remotion.dev/) (React + TypeScript) do vídeo mot
 
 ```bash
 npm install
-npx remotion studio
+npm run dev
 ```
+
+No Linux e no macOS, o projeto usa diretamente o compositor nativo do Remotion.
+No Windows, os mesmos comandos executam automaticamente o ajuste local de FFmpeg
+descrito abaixo.
 
 ## Como renderizar
 
@@ -40,7 +44,8 @@ Rode se precisar:
 npm run fix:ffmpeg
 ```
 
-Recomendado: **Node 20 ou 22 LTS** (não 24). O arquivo `.nvmrc` aponta para 22.
+No Windows, recomenda-se **Node 20 ou 22 LTS**; o arquivo `.nvmrc` aponta para 22.
+Node 24 também é aceito pelo projeto no Linux e no macOS.
 
 ```powershell
 nvm install 22
@@ -66,6 +71,22 @@ npm run render
 | `Scene10` | Montagem / fechamento | 3:43–3:57 | 420 |
 | `Scene11` | CTA lançamento 15/08/2026 | 3:57–4:15 | 540 |
 | `SceneNutritionalTable` | Export isolado (fora do Main) | — | 600 |
+
+### Campanhas promocionais
+
+Além das campanhas 01–04, o projeto inclui a família **Campanha 05 — “Feita para o seu trabalho”**:
+
+- master de 75s em 16:9, 9:16 e 1:1;
+- cortes de 24s para gelateria, especialista e indústria;
+- ganchos A/B verticais para mídia paga;
+- legendas editoriais opcionais e suporte a voz/trilha por props;
+- script de entrega com versões limpas, thumbnail, poster e CTA estático.
+
+```bash
+npm run render:campaign:05
+```
+
+Roteiro, nomenclatura das composições e checklist de áudio/QA: [`docs/campaign-05-feita-para-seu-trabalho.md`](docs/campaign-05-feita-para-seu-trabalho.md).
 
 ## Estrutura
 
