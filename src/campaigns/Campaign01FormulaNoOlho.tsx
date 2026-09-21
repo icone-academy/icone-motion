@@ -673,7 +673,7 @@ const AnalysisScene: React.FC<{format: Campaign01Format}> = ({format}) => {
                     color: colors.textPrimary,
                   }}
                 >
-                  {resolved > 0.8 ? 'Ajuste validado' : 'Buscando um ajuste seguro'}
+                  {resolved > 0.8 ? 'Simulação concluída' : 'Testando um ajuste técnico'}
                 </div>
                 <div
                   style={{
@@ -910,7 +910,7 @@ const ResultScene: React.FC<{format: Campaign01Format}> = ({format}) => {
           }}
         >
           <Kicker icon={<CheckCircle2 size={20} color={colors.success} />}>
-            Ajuste tecnicamente validado
+            Ajuste guiado por parâmetros
           </Kicker>
           <div
             style={{
