@@ -37,6 +37,16 @@ import {
   Campaign01FormulaNoOlho,
 } from './campaigns/Campaign01FormulaNoOlho';
 import {
+  CAMPAIGN_01_PRODUCT_FIRST_DURATION,
+  CAMPAIGN_01_PRODUCT_FIRST_FPS,
+  Campaign01ProductFirst,
+} from './campaigns/Campaign01ProductFirst';
+import {Campaign01ResultadoPrimeiro} from './campaigns/campaign01v3/Campaign01ResultadoPrimeiro';
+import {
+  CAMPAIGN_01_V3_DURATION,
+  CAMPAIGN_01_V3_FPS,
+} from './campaigns/campaign01v3/types';
+import {
   CAMPAIGN_02_DURATION,
   CAMPAIGN_02_FPS,
   Campaign02SuaReceitaMelhor,
@@ -170,6 +180,64 @@ export const RemotionRoot: React.FC = () => {
         width={1920}
         height={1080}
         defaultProps={{format: 'horizontal'}}
+      />
+
+      {/* Campanha 01 V2 — produto primeiro para tráfego frio */}
+      <Composition
+        id="Campaign01ProductFirstVertical15s"
+        component={Campaign01ProductFirst}
+        durationInFrames={CAMPAIGN_01_PRODUCT_FIRST_DURATION}
+        fps={CAMPAIGN_01_PRODUCT_FIRST_FPS}
+        width={1080}
+        height={1920}
+        defaultProps={{format: 'vertical', voiceoverFile: null, withSfx: false}}
+      />
+      <Composition
+        id="Campaign01ProductFirstSquare15s"
+        component={Campaign01ProductFirst}
+        durationInFrames={CAMPAIGN_01_PRODUCT_FIRST_DURATION}
+        fps={CAMPAIGN_01_PRODUCT_FIRST_FPS}
+        width={1080}
+        height={1080}
+        defaultProps={{format: 'square', voiceoverFile: null, withSfx: false}}
+      />
+      <Composition
+        id="Campaign01ProductFirstHorizontal15s"
+        component={Campaign01ProductFirst}
+        durationInFrames={CAMPAIGN_01_PRODUCT_FIRST_DURATION}
+        fps={CAMPAIGN_01_PRODUCT_FIRST_FPS}
+        width={1920}
+        height={1080}
+        defaultProps={{format: 'horizontal', voiceoverFile: null, withSfx: false}}
+      />
+
+      {/* Campanha 01 V3 — resultado primeiro, sem efeitos sonoros */}
+      <Composition
+        id="Campaign01ResultFirstVertical30s"
+        component={Campaign01ResultadoPrimeiro}
+        durationInFrames={CAMPAIGN_01_V3_DURATION}
+        fps={CAMPAIGN_01_V3_FPS}
+        width={1080}
+        height={1920}
+        defaultProps={{format: 'vertical', voiceoverFile: 'audio/campaign-01-v3-voiceover-ptbr.wav', musicFile: null}}
+      />
+      <Composition
+        id="Campaign01ResultFirstSquare30s"
+        component={Campaign01ResultadoPrimeiro}
+        durationInFrames={CAMPAIGN_01_V3_DURATION}
+        fps={CAMPAIGN_01_V3_FPS}
+        width={1080}
+        height={1080}
+        defaultProps={{format: 'square', voiceoverFile: 'audio/campaign-01-v3-voiceover-ptbr.wav', musicFile: null}}
+      />
+      <Composition
+        id="Campaign01ResultFirstHorizontal30s"
+        component={Campaign01ResultadoPrimeiro}
+        durationInFrames={CAMPAIGN_01_V3_DURATION}
+        fps={CAMPAIGN_01_V3_FPS}
+        width={1920}
+        height={1080}
+        defaultProps={{format: 'horizontal', voiceoverFile: 'audio/campaign-01-v3-voiceover-ptbr.wav', musicFile: null}}
       />
 
       {/* Campanha pós-lançamento — Filme 02: “Sua receita pode ser melhor” */}

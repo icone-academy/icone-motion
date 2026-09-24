@@ -1,6 +1,6 @@
 # ICone — Inteligência para Gelato · Vídeo Institucional (Motion Graphics)
 
-Projeto [Remotion](https://www.remotion.dev/) (React + TypeScript) do vídeo motion graphics institucional da **ICone — Inteligência para Gelato**, plataforma SaaS de ERP para gelaterias e sorveterias profissionais.
+Projeto [Remotion](https://www.remotion.dev/) (React + TypeScript) do vídeo motion graphics institucional da **ICone — Inteligência para Gelato**, plataforma SaaS para gelaterias e sorveterias profissionais.
 
 - **Resolução:** 1920×1080 · **FPS:** 60 · **Duração total (Main):** ~4:02.7 (sincronizado ao VO em `public/audio/vo.mp3`)
 - **Identidade visual:** design system real do ICone Academy (taupe/cream, Oswald + Inter, sombras warm-brown, ícones Lucide outline)
@@ -87,6 +87,25 @@ npm run render:campaign:05
 ```
 
 Roteiro, nomenclatura das composições e checklist de áudio/QA: [`docs/campaign-05-feita-para-seu-trabalho.md`](docs/campaign-05-feita-para-seu-trabalho.md).
+
+A **Campanha 01 V3 — “Resultado primeiro”** é o conceito atual para tráfego frio. A mensagem começa pela qualidade e pela consistência do gelato, demonstra o fluxo em linguagem simples e amplia a percepção do produto para ingredientes, neutros, custos e documentação. As composições principais usam a locução aprovada e sincronizada; não há efeitos sonoros, e a trilha continua opcional por prop.
+
+```bash
+npm run render:campaign:01:v3:vertical
+npm run render:campaign:01:v3:square
+npm run render:campaign:01:v3:horizontal
+```
+
+Roteiro, critérios de compreensão, direção visual e texto de locução: [`docs/campaign-01-v3-resultado-primeiro.md`](docs/campaign-01-v3-resultado-primeiro.md).
+
+A **Campanha 01 V2 — “Produto primeiro”** foi mantida apenas como histórico e eventual comparação. Seus efeitos sonoros ficam desligados por padrão.
+
+```bash
+npm run render:campaign:01:v2:vertical
+npm run render:campaign:01:v2:square
+```
+
+Roteiro, critérios de compreensão e texto de locução: [`docs/campaign-01-v2-product-first.md`](docs/campaign-01-v2-product-first.md).
 
 ## Estrutura
 
